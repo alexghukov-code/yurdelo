@@ -445,8 +445,8 @@ describe('Cleanup jobs', () => {
 
     // Both DELETEs must have a created_at < NOW() - INTERVAL filter
     const queries = pool.query.mock.calls.map((c: any) => c[0] as string);
-    const apiLogsQuery = queries.find((q) => q.includes('api_logs'));
-    const authEventsQuery = queries.find((q) => q.includes('auth_events'));
+    const apiLogsQuery = queries.find((q: string) => q.includes('api_logs'));
+    const authEventsQuery = queries.find((q: string) => q.includes('auth_events'));
 
     // Verify WHERE clause targets only old records
     expect(apiLogsQuery).toMatch(/WHERE created_at < NOW\(\) - INTERVAL '30 days'/);

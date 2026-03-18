@@ -11,10 +11,11 @@ services:
     image: postgres:16-alpine
     container_name: yurdelo-postgres
     restart: always
+    env_file:
+      - ../.env
     environment:
       POSTGRES_DB: yurdelo
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql
@@ -23,11 +24,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
     container_name: yurdelo-redis
     restart: always
+    env_file:
+      - ../.env
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     volumes:
       - redisdata:/data
@@ -58,7 +62,7 @@ services:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
       interval: 15s
       timeout: 3s
-      start_period: 10s
+      start_period: 15s
       retries: 3
     deploy:
       resources:

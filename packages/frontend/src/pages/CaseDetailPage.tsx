@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useCaseDetail, useUpdateCase, useUpdateCaseStatus, useSetFinalResult, useDeleteCase } from '../hooks/useCases';
 import { useAuth } from '../hooks/useAuth';
 import { isStaleDataError } from '../api/client';
@@ -9,7 +10,10 @@ import { StaleDataModal } from '../components/StaleDataModal';
 import { CaseForm, type CaseFormValues } from '../components/CaseForm';
 import { ArrowLeft, Trash2, Pencil, Plus } from 'lucide-react';
 import { StageFormModal } from '../components/StageFormModal';
-import type { Stage } from '../api/cases';
+import { HearingFormModal } from '../components/HearingFormModal';
+import { TransferModal } from '../components/TransferModal';
+import type { Stage, Hearing } from '../api/cases';
+import { fetchTransfers, type Transfer } from '../api/transfers';
 import { PermissionGate } from '../components/PermissionGate';
 import { usePermission } from '../hooks/usePermission';
 import { StatusMenu } from '../components/StatusMenu';
@@ -27,6 +31,15 @@ export function CaseDetailPage() {
   const [editing, setEditing] = useState(false);
   const [staleOpen, setStaleOpen] = useState(false);
   const [stageModal, setStageModal] = useState<{ mode: 'create' | 'edit'; stage?: Stage } | null>(null);
+  const [hearingModal, setHearingModal] = useState<{ mode: 'create' | 'edit'; stageId: string; hearing?: Hearing } | null>(null);
+  const [resultSuggestion, setResultSuggestion] = useState<string | null>(null);
+  const [showTransfer, setShowTransfer] = useState(false);
+
+  const { data: transfers = [] } = useQuery({
+    queryKey: ['transfers', id],
+    queryFn: () => fetchTransfers(id!),
+    enabled: !!id && !!caseData,
+  });
 
   if (isLoading) return <PageSkeleton />;
   if (isError) return <QueryErrorView error={error} onRetry={refetch} />;
@@ -204,17 +217,62 @@ export function CaseDetailPage() {
                               })}
                             </span>
                           </div>
-                          {h.result && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                              {resultLabel(h.result)}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {h.result && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                                {resultLabel(h.result)}
+                              </span>
+                            )}
+                            {canEdit && (
+                              <button
+                                onClick={() => setHearingModal({ mode: 'edit', stageId: s.id, hearing: h })}
+                                className="p-1 text-gray-400 hover:text-gray-600"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
+                  {canEdit && (
+                    <button
+                      onClick={() => setHearingModal({ mode: 'create', stageId: s.id })}
+                      className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-2"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Слушание
+                    </button>
+                  )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Result suggestion banner */}
+          {resultSuggestion && c.status === 'closed' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+              <p className="text-sm text-blue-800 font-medium">
+                Обновить итоговый результат дела до «{resultLabel(resultSuggestion)}»?
+              </p>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    setResult.mutate({ id: c.id, finalResult: resultSuggestion, updatedAt: c.updatedAt });
+                    setResultSuggestion(null);
+                  }}
+                  className="px-3 py-1 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Да
+                </button>
+                <button
+                  onClick={() => setResultSuggestion(null)}
+                  className="px-3 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-100"
+                >
+                  Нет
+                </button>
+              </div>
             </div>
           )}
 
@@ -226,6 +284,60 @@ export function CaseDetailPage() {
               initialData={stageModal.stage}
               onClose={() => setStageModal(null)}
               onStale={() => { setStageModal(null); setStaleOpen(true); }}
+            />
+          )}
+
+          {hearingModal && (
+            <HearingFormModal
+              mode={hearingModal.mode}
+              stageId={hearingModal.stageId}
+              caseId={c.id}
+              initialData={hearingModal.hearing}
+              onClose={() => setHearingModal(null)}
+              onStale={() => { setHearingModal(null); setStaleOpen(true); }}
+              onResultCreated={(result) => setResultSuggestion(result)}
+            />
+          )}
+
+          {/* Transfers */}
+          <div className="flex items-center justify-between mt-8 mb-3">
+            <h2 className="text-lg font-semibold text-gray-900">Передачи</h2>
+            {canEdit && (
+              <button
+                onClick={() => setShowTransfer(true)}
+                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+              >
+                Передать дело
+              </button>
+            )}
+          </div>
+          {transfers.length === 0 ? (
+            <p className="text-sm text-gray-400">Передач нет.</p>
+          ) : (
+            <div className="space-y-3">
+              {transfers.map((t) => (
+                <div key={t.id} className="flex items-start gap-3 text-sm border-l-2 border-gray-200 pl-4">
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      {t.fromName} → {t.toName}
+                    </p>
+                    {t.comment && <p className="text-gray-500 mt-0.5">{t.comment}</p>}
+                    <p className="text-xs text-gray-400 mt-1">
+                      {new Date(t.transferDate).toLocaleDateString('ru')}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {showTransfer && (
+            <TransferModal
+              caseId={c.id}
+              caseName={c.name}
+              currentLawyerId={c.lawyerId}
+              currentLawyerName={c.lawyerName ?? ''}
+              onClose={() => { setShowTransfer(false); refetch(); }}
             />
           )}
         </>

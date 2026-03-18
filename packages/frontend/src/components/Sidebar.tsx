@@ -4,7 +4,7 @@ import { Briefcase, Users, Calendar, BarChart3, Scale, UserCog, X } from 'lucide
 import { can, type Permission } from '../lib/permissions';
 
 const NAV: Array<{ to: string; label: string; icon: React.ElementType; allow: Permission }> = [
-  { to: '/', label: 'Дела', icon: Briefcase, allow: 'nav:cases' },
+  { to: '/cases', label: 'Дела', icon: Briefcase, allow: 'nav:cases' },
   { to: '/parties', label: 'Контрагенты', icon: Users, allow: 'nav:parties' },
   { to: '/calendar', label: 'Календарь', icon: Calendar, allow: 'nav:calendar' },
   { to: '/reports', label: 'Отчёты', icon: BarChart3, allow: 'nav:reports' },

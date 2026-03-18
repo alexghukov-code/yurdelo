@@ -10,6 +10,8 @@ import { CaseForm, type CaseFormValues } from '../components/CaseForm';
 import { ArrowLeft, Trash2, Pencil } from 'lucide-react';
 import { PermissionGate } from '../components/PermissionGate';
 import { usePermission } from '../hooks/usePermission';
+import { StatusMenu } from '../components/StatusMenu';
+import { FinalResultMenu } from '../components/FinalResultMenu';
 
 export function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -103,18 +105,16 @@ export function CaseDetailPage() {
                   Редактировать
                 </button>
               )}
-              {canEdit && c.status === 'active' && (
-                <button
-                  onClick={() =>
+              {canEdit && (
+                <StatusMenu
+                  currentStatus={c.status}
+                  onChangeStatus={(newStatus) =>
                     updateStatus.mutate(
-                      { id: c.id, status: 'closed', updatedAt: c.updatedAt },
+                      { id: c.id, status: newStatus, updatedAt: c.updatedAt },
                       { onError: (err) => { if (isStaleDataError(err)) setStaleOpen(true); } },
                     )
                   }
-                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
-                >
-                  Закрыть дело
-                </button>
+                />
               )}
               <PermissionGate allow="case:delete">
                 <button
@@ -132,28 +132,27 @@ export function CaseDetailPage() {
           {/* Info grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <InfoCard label="Статус" value={statusLabel(c.status)} />
-            <InfoCard label="Результат" value={c.finalResult ?? '—'} />
+            <div className="bg-white rounded-lg shadow px-4 py-3">
+              <p className="text-xs text-gray-500">Результат</p>
+              <div className="mt-0.5">
+                {canEdit && c.status === 'closed' ? (
+                  <FinalResultMenu
+                    currentResult={c.finalResult}
+                    onSetResult={(result) =>
+                      setResult.mutate(
+                        { id: c.id, finalResult: result, updatedAt: c.updatedAt },
+                        { onError: (err) => { if (isStaleDataError(err)) setStaleOpen(true); } },
+                      )
+                    }
+                  />
+                ) : (
+                  <p className="text-sm font-medium text-gray-900">{resultLabel(c.finalResult) ?? '—'}</p>
+                )}
+              </div>
+            </div>
             <InfoCard label="Цена иска" value={c.claimAmount ? `${c.claimAmount.toLocaleString('ru')} ₽` : '—'} />
             <InfoCard label="Создано" value={new Date(c.createdAt).toLocaleDateString('ru')} />
           </div>
-
-          {/* Final result suggestion */}
-          {canEdit && c.status === 'closed' && !c.finalResult && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-yellow-800 font-medium">Установите итоговый результат дела</p>
-              <div className="flex gap-2 mt-2">
-                {['win', 'lose', 'part', 'world'].map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => setResult.mutate({ id: c.id, finalResult: r, updatedAt: c.updatedAt })}
-                    className="px-3 py-1 text-xs rounded-lg border border-yellow-300 hover:bg-yellow-100"
-                  >
-                    {resultLabel(r)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Stages + hearings */}
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Стадии</h2>
@@ -214,7 +213,8 @@ function statusLabel(s: string) {
   return m[s] ?? s;
 }
 
-function resultLabel(r: string) {
+function resultLabel(r: string | null) {
+  if (!r) return '—';
   const m: Record<string, string> = { win: 'Победа', lose: 'Проигрыш', part: 'Частично', world: 'Мировое' };
   return m[r] ?? r;
 }

@@ -7,7 +7,6 @@ import { PermissionGate } from '../components/PermissionGate';
 import { useDebounce } from '../hooks/useDebounce';
 import { TableSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
-import { extractError } from '../api/client';
 import toast from 'react-hot-toast';
 
 export function PartiesPage() {
@@ -100,7 +99,6 @@ function CreatePartyModal({ onClose, onSuccess }: { onClose: () => void; onSucce
   const mutation = useMutation({
     mutationFn: createParty,
     onSuccess: () => { toast.success('Контрагент создан'); onSuccess(); },
-    onError: (err) => toast.error(extractError(err).message),
   });
 
   return (

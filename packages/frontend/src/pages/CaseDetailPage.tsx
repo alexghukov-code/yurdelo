@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useCaseDetail, useUpdateCaseStatus, useSetFinalResult, useDeleteCase } from '../hooks/useCases';
 import { useAuth } from '../hooks/useAuth';
 import { CardSkeleton } from '../components/Skeleton';
-import { ErrorAlert } from '../components/ErrorAlert';
+import { QueryErrorView } from '../components/QueryErrorView';
 import { StaleDataModal } from '../components/StaleDataModal';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { PermissionGate } from '../components/PermissionGate';
@@ -19,16 +19,7 @@ export function CaseDetailPage() {
   const [staleOpen, setStaleOpen] = useState(false);
 
   if (isLoading) return <CardSkeleton />;
-  if (isError) {
-    const status = (error as any)?.response?.status;
-    if (status === 403) {
-      return <ErrorAlert message="Нет доступа. Обратитесь к руководителю." />;
-    }
-    if (status === 404) {
-      return <ErrorAlert message="Дело не найдено." />;
-    }
-    return <ErrorAlert message="Не удалось загрузить дело." onRetry={() => refetch()} />;
-  }
+  if (isError) return <QueryErrorView error={error} onRetry={refetch} />;
   if (!caseData) return null;
 
   const c = caseData;

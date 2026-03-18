@@ -89,3 +89,15 @@ export function extractError(err: unknown): ApiError {
 export function isStaleDataError(err: unknown): boolean {
   return axios.isAxiosError(err) && err.response?.status === 409;
 }
+
+export function getHttpStatus(err: unknown): number | undefined {
+  return axios.isAxiosError(err) ? err.response?.status : undefined;
+}
+
+export function getRetryAfter(err: unknown): number | undefined {
+  if (!axios.isAxiosError(err) || err.response?.status !== 429) return undefined;
+  const header = err.response.headers?.['retry-after'];
+  if (!header) return undefined;
+  const seconds = parseInt(header, 10);
+  return isNaN(seconds) ? undefined : seconds;
+}

@@ -67,7 +67,7 @@ describe('CaseDetailPage error handling (bug #5)', () => {
     renderCaseDetail('case-404');
 
     await waitFor(() => {
-      expect(screen.getByText(/Дело не найдено/)).toBeInTheDocument();
+      expect(screen.getByText(/не найден/i)).toBeInTheDocument();
     });
 
     expect(screen.queryByText(/Повторить/)).not.toBeInTheDocument();
@@ -86,7 +86,7 @@ describe('CaseDetailPage error handling (bug #5)', () => {
     renderCaseDetail('case-500');
 
     await waitFor(() => {
-      expect(screen.getByText(/Не удалось загрузить дело/)).toBeInTheDocument();
+      expect(screen.getByText(/Не удалось загрузить/)).toBeInTheDocument();
     });
 
     // Retry button IS present for 500

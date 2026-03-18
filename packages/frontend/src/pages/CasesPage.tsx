@@ -6,7 +6,7 @@ import { useCasesList } from '../hooks/useCases';
 import { useDebounce } from '../hooks/useDebounce';
 import { TableSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
-import { ErrorAlert } from '../components/ErrorAlert';
+import { QueryErrorView } from '../components/QueryErrorView';
 
 export function CasesPage() {
   const [page, setPage] = useState(1);
@@ -68,9 +68,7 @@ export function CasesPage() {
       {/* Content */}
       {isLoading && <TableSkeleton rows={8} cols={5} />}
 
-      {isError && (
-        <ErrorAlert message={error?.message ?? 'Ошибка загрузки.'} onRetry={() => refetch()} />
-      )}
+      {isError && <QueryErrorView error={error} onRetry={refetch} />}
 
       {data && data.data.length === 0 && (
         <EmptyState

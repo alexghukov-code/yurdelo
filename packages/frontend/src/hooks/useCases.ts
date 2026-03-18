@@ -4,7 +4,6 @@ import {
   updateCaseStatus, setCaseFinalResult,
 } from '../api/cases';
 import toast from 'react-hot-toast';
-import { isStaleDataError, extractError } from '../api/client';
 
 export function useCasesList(params: {
   page?: number;
@@ -34,7 +33,6 @@ export function useCreateCase() {
       qc.invalidateQueries({ queryKey: ['cases'] });
       toast.success('Дело создано');
     },
-    onError: (err) => toast.error(extractError(err).message),
   });
 }
 
@@ -48,13 +46,6 @@ export function useUpdateCase() {
       qc.invalidateQueries({ queryKey: ['cases'] });
       toast.success('Дело обновлено');
     },
-    onError: (err) => {
-      if (isStaleDataError(err)) {
-        toast.error('Данные изменены другим пользователем. Обновите страницу.');
-      } else {
-        toast.error(extractError(err).message);
-      }
-    },
   });
 }
 
@@ -66,7 +57,6 @@ export function useDeleteCase() {
       qc.invalidateQueries({ queryKey: ['cases'] });
       toast.success('Дело удалено');
     },
-    onError: (err) => toast.error(extractError(err).message),
   });
 }
 
@@ -78,10 +68,6 @@ export function useUpdateCaseStatus() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['cases', vars.id] });
       qc.invalidateQueries({ queryKey: ['cases'] });
-    },
-    onError: (err) => {
-      if (isStaleDataError(err)) toast.error('Данные изменены. Обновите страницу.');
-      else toast.error(extractError(err).message);
     },
   });
 }
@@ -95,6 +81,5 @@ export function useSetFinalResult() {
       qc.invalidateQueries({ queryKey: ['cases', vars.id] });
       toast.success('Результат установлен');
     },
-    onError: (err) => toast.error(extractError(err).message),
   });
 }

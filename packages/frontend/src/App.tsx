@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
+import { isStaleDataError, extractError, getRetryAfter } from './api/client';
 import { AuthContext, useAuthProvider } from './hooks/useAuth';
 import { AppShell } from './components/AppShell';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -12,9 +13,23 @@ import { PartiesPage } from './pages/PartiesPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
+function handleMutationError(err: unknown) {
+  if (isStaleDataError(err)) {
+    toast.error('Данные изменены другим пользователем. Обновите страницу.');
+    return;
+  }
+  const retryAfter = getRetryAfter(err);
+  if (retryAfter !== undefined) {
+    toast.error(`Слишком много запросов. Повторите через ${retryAfter} сек.`);
+    return;
+  }
+  toast.error(extractError(err).message);
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 30_000, retry: 1 },
+    mutations: { onError: handleMutationError },
   },
 });
 

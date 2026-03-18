@@ -31,6 +31,15 @@ export interface Stage {
   updatedAt: string;
 }
 
+export interface HearingDocument {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
 export interface Hearing {
   id: string;
   stageId: string;
@@ -41,6 +50,7 @@ export interface Hearing {
   newDatetime: string | null;
   adjReason: string | null;
   notes: string | null;
+  documents?: HearingDocument[];
   createdAt: string;
   updatedAt: string;
 }

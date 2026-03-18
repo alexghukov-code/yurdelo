@@ -127,11 +127,28 @@ export function casesRouter(deps: { db: Pool; redis: Redis }) {
        ORDER BY h.datetime`,
       [req.params.id],
     );
+    const { rows: docs } = await db.query(
+      `SELECT id, hearing_id, file_name, file_size, mime_type, uploaded_by, created_at
+       FROM documents WHERE case_id = $1 AND deleted_at IS NULL ORDER BY created_at`,
+      [req.params.id],
+    );
+
+    const docMap = new Map<string, any[]>();
+    for (const d of docs) {
+      if (!docMap.has(d.hearing_id)) docMap.set(d.hearing_id, []);
+      docMap.get(d.hearing_id)!.push({
+        id: d.id, fileName: d.file_name, fileSize: d.file_size,
+        mimeType: d.mime_type, uploadedBy: d.uploaded_by, createdAt: d.created_at,
+      });
+    }
 
     const stageMap = new Map<string, any[]>();
     for (const h of hearings) {
       if (!stageMap.has(h.stage_id)) stageMap.set(h.stage_id, []);
-      stageMap.get(h.stage_id)!.push(formatHearing(h));
+      stageMap.get(h.stage_id)!.push({
+        ...formatHearing(h),
+        documents: docMap.get(h.id) ?? [],
+      });
     }
 
     res.json({

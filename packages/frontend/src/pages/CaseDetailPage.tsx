@@ -12,6 +12,7 @@ import { ArrowLeft, Trash2, Pencil, Plus } from 'lucide-react';
 import { StageFormModal } from '../components/StageFormModal';
 import { HearingFormModal } from '../components/HearingFormModal';
 import { TransferModal } from '../components/TransferModal';
+import { DocumentList } from '../components/DocumentList';
 import type { Stage, Hearing } from '../api/cases';
 import { fetchTransfers, type Transfer } from '../api/transfers';
 import { PermissionGate } from '../components/PermissionGate';
@@ -208,30 +209,38 @@ export function CaseDetailPage() {
                   ) : (
                     <div className="space-y-2">
                       {s.hearings.map((h) => (
-                        <div key={h.id} className="flex items-center justify-between text-sm border-t pt-2">
-                          <div>
-                            <span className="font-medium">{hearingTypeLabel(h.type)}</span>
-                            <span className="text-gray-500 ml-2">
-                              {new Date(h.datetime).toLocaleString('ru', {
-                                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {h.result && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                                {resultLabel(h.result)}
+                        <div key={h.id} className="border-t pt-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <div>
+                              <span className="font-medium">{hearingTypeLabel(h.type)}</span>
+                              <span className="text-gray-500 ml-2">
+                                {new Date(h.datetime).toLocaleString('ru', {
+                                  day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                                })}
                               </span>
-                            )}
-                            {canEdit && (
-                              <button
-                                onClick={() => setHearingModal({ mode: 'edit', stageId: s.id, hearing: h })}
-                                className="p-1 text-gray-400 hover:text-gray-600"
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </button>
-                            )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {h.result && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                                  {resultLabel(h.result)}
+                                </span>
+                              )}
+                              {canEdit && (
+                                <button
+                                  onClick={() => setHearingModal({ mode: 'edit', stageId: s.id, hearing: h })}
+                                  className="p-1 text-gray-400 hover:text-gray-600"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
                           </div>
+                          <DocumentList
+                            hearingId={h.id}
+                            caseId={c.id}
+                            documents={h.documents ?? []}
+                            canEdit={canEdit}
+                          />
                         </div>
                       ))}
                     </div>

@@ -13,6 +13,7 @@ import { PartiesPage } from './pages/PartiesPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { CaseCreatePage } from './pages/CaseCreatePage';
 import { UsersPage } from './pages/UsersPage';
+import { ReportsPage } from './pages/ReportsPage';
 import { UserProfilePage } from './pages/UserProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -54,6 +55,9 @@ export function App() {
                 <Route path="cases/:id" element={<CaseDetailPage />} />
                 <Route path="parties" element={<PartiesPage />} />
                 <Route path="calendar" element={<CalendarPage />} />
+                <Route path="reports" element={<ProtectedRoute roles={['admin', 'lawyer']} />}>
+                  <Route index element={<ReportsPage />} />
+                </Route>
                 <Route path="users" element={<UsersPage />} />
                 <Route path="users/:id" element={<UserProfilePage />} />
               </Route>

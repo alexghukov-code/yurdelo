@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { PermissionGate } from '../components/PermissionGate';
-import { useCasesList } from '../hooks/useCases';
+import { useCasesList, useCreateCase } from '../hooks/useCases';
 import { useDebounce } from '../hooks/useDebounce';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { EmptyState } from '../components/EmptyState';
 import { QueryErrorView } from '../components/QueryErrorView';
+import { CaseForm, type CaseFormValues } from '../components/CaseForm';
 
 export function CasesPage() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string>('');
   const [search, setSearch] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
+  const createCase = useCreateCase();
   const debouncedSearch = useDebounce(search, 300);
 
   const { data, isLoading, isError, error, refetch } = useCasesList({
@@ -25,13 +28,13 @@ export function CasesPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Дела</h1>
         <PermissionGate allow="case:create">
-          <Link
-            to="/cases/new"
+          <button
+            onClick={() => setShowCreate(true)}
             className="flex items-center gap-1.5 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" />
             Дело
-          </Link>
+          </button>
         </PermissionGate>
       </div>
 
@@ -141,6 +144,37 @@ export function CasesPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Create case modal */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Новое дело</h3>
+              <button onClick={() => setShowCreate(false)}>
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+            <CaseForm
+              mode="create"
+              isSubmitting={createCase.isPending}
+              onCancel={() => setShowCreate(false)}
+              onSubmit={(values) => {
+                createCase.mutate(
+                  {
+                    name: values.name,
+                    pltId: values.pltId,
+                    defId: values.defId,
+                    category: values.category,
+                    claimAmount: values.claimAmount ? Number(values.claimAmount) : undefined,
+                  },
+                  { onSuccess: () => setShowCreate(false) },
+                );
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -5,15 +5,17 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { AppError } from '../utils/errors.js';
 import { writeAuditLog } from '../utils/audit.js';
 import { validate, createPartySchema, updatePartySchema } from '../utils/validation.js';
+import { getDb } from '../utils/db.js';
 import '../types.js';
 
 export function partiesRouter(deps: { db: Pool; redis: Redis }) {
-  const { db } = deps;
+  const { db: rawDb } = deps;
   const router = Router();
 
   // ── GET /parties ────────────────────────────────────
   // All roles: Admin, Lawyer, Viewer
   router.get('/parties', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
     const offset = (page - 1) * limit;
@@ -56,6 +58,7 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
   // ── POST /parties ───────────────────────────────────
   // Admin, Lawyer
   router.post('/parties', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
+    const db = getDb(req, rawDb);
     const body = validate(createPartySchema, req.body);
 
     // INN dedup: warning, not block
@@ -102,6 +105,7 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
   // ── GET /parties/:id ────────────────────────────────
   // All roles
   router.get('/parties/:id', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const { rows } = await db.query(
       `SELECT p.id, p.name, p.inn, p.ogrn, p.address, p.phone, p.email,
               p.created_at, p.updated_at
@@ -136,6 +140,7 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
   // ── PATCH /parties/:id ──────────────────────────────
   // Admin, Lawyer
   router.patch('/parties/:id', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
+    const db = getDb(req, rawDb);
     const body = validate(updatePartySchema, req.body);
 
     const map: Record<string, string> = {
@@ -188,6 +193,7 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
   // ── DELETE /parties/:id ─────────────────────────────
   // Admin only. Blocked if party has active cases.
   router.delete('/parties/:id', requireAuth, requireRole('admin'), async (req, res) => {
+    const db = getDb(req, rawDb);
     // Check active cases
     const { rows: activeCases } = await db.query(
       `SELECT count(*)::int AS count FROM cases

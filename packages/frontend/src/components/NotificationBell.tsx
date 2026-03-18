@@ -8,7 +8,7 @@ import { ru } from 'date-fns/locale';
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { data } = useNotifications(10);
+  const { data, isError } = useNotifications(10);
   const markRead = useMarkRead();
   const markAll = useMarkAllRead();
   const navigate = useNavigate();
@@ -53,7 +53,11 @@ export function NotificationBell() {
           </div>
 
           <div className="max-h-80 overflow-y-auto">
-            {items.length === 0 ? (
+            {isError ? (
+              <p className="px-4 py-8 text-sm text-red-500 text-center">
+                Не удалось загрузить уведомления.
+              </p>
+            ) : items.length === 0 ? (
               <p className="px-4 py-8 text-sm text-gray-400 text-center">
                 Новых уведомлений нет.
               </p>

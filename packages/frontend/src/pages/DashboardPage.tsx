@@ -1,26 +1,32 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { fetchCases } from '../api/cases';
 import { fetchMyReport } from '../api/reports';
+import { can } from '../lib/permissions';
 import { PageSkeleton } from '../components/PageSkeleton';
+import { QueryErrorView } from '../components/QueryErrorView';
+import { EmptyState } from '../components/EmptyState';
 import { Briefcase, TrendingUp, AlertTriangle } from 'lucide-react';
 
 export function DashboardPage() {
   const { user } = useAuth();
 
-  const { data: casesData, isLoading: casesLoading } = useQuery({
+  const { data: casesData, isLoading: casesLoading, isError: casesError, error: casesErr, refetch: casesRefetch } = useQuery({
     queryKey: ['dashboard', 'recent-cases'],
     queryFn: () => fetchCases({ page: 1, limit: 5 }),
-    staleTime: 60_000, // dashboard doesn't need to refetch on every focus
+    staleTime: 60_000,
   });
 
-  const { data: report, isLoading: reportLoading } = useQuery({
+  const { data: report, isLoading: reportLoading, isError: reportError, error: reportErr, refetch: reportRefetch } = useQuery({
     queryKey: ['reports', 'my'],
     queryFn: fetchMyReport,
-    enabled: user?.role !== 'viewer',
+    enabled: !!user && can(user.role, 'report:view'),
   });
 
   if (casesLoading || reportLoading) return <PageSkeleton />;
+  if (casesError) return <QueryErrorView error={casesErr} onRetry={casesRefetch} />;
+  if (reportError) return <QueryErrorView error={reportErr} onRetry={reportRefetch} />;
 
   const load = report?.load;
   const results = report?.results;
@@ -50,28 +56,36 @@ export function DashboardPage() {
       )}
 
       <h2 className="text-lg font-semibold text-gray-900 mb-3">Последние дела</h2>
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left">
-            <tr>
-              <th className="px-4 py-3 font-medium text-gray-500">Название</th>
-              <th className="px-4 py-3 font-medium text-gray-500">Категория</th>
-              <th className="px-4 py-3 font-medium text-gray-500">Статус</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {casesData?.data.map((c) => (
-              <tr key={c.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{c.name}</td>
-                <td className="px-4 py-3 text-gray-500">{c.category}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={c.status} />
-                </td>
+      {casesData && casesData.data.length === 0 ? (
+        <EmptyState title="Дел пока нет" description="Нажмите + Дело, чтобы добавить первое." />
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-left">
+              <tr>
+                <th className="px-4 py-3 font-medium text-gray-500">Название</th>
+                <th className="px-4 py-3 font-medium text-gray-500">Категория</th>
+                <th className="px-4 py-3 font-medium text-gray-500">Статус</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y">
+              {casesData?.data.map((c) => (
+                <tr key={c.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <Link to={`/cases/${c.id}`} className="font-medium text-blue-600 hover:text-blue-800">
+                      {c.name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500">{c.category}</td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={c.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

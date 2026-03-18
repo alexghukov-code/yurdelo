@@ -5,7 +5,8 @@ import { Search, Plus, X } from 'lucide-react';
 import { fetchParties, createParty, type Party } from '../api/parties';
 import { PermissionGate } from '../components/PermissionGate';
 import { useDebounce } from '../hooks/useDebounce';
-import { TableSkeleton } from '../components/Skeleton';
+import { PageSkeleton } from '../components/PageSkeleton';
+import { QueryErrorView } from '../components/QueryErrorView';
 import { EmptyState } from '../components/EmptyState';
 import toast from 'react-hot-toast';
 
@@ -15,7 +16,7 @@ export function PartiesPage() {
   const [showForm, setShowForm] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['parties', { search: debouncedSearch }],
     queryFn: () => fetchParties({ search: debouncedSearch || undefined }),
     placeholderData: (prev) => prev,
@@ -46,7 +47,9 @@ export function PartiesPage() {
         />
       </div>
 
-      {isLoading && <TableSkeleton />}
+      {isLoading && <PageSkeleton variant="table" />}
+
+      {isError && <QueryErrorView error={error} onRetry={refetch} />}
 
       {data && data.data.length === 0 && (
         <EmptyState

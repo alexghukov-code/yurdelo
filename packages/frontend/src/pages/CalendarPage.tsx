@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchCalendar, type CalendarEvent } from '../api/reports';
-import { CardSkeleton } from '../components/Skeleton';
+import { PageSkeleton } from '../components/PageSkeleton';
+import { QueryErrorView } from '../components/QueryErrorView';
 import { EmptyState } from '../components/EmptyState';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -13,7 +14,7 @@ export function CalendarPage() {
   const year = current.getFullYear();
   const month = current.getMonth() + 1;
 
-  const { data: events = [], isLoading } = useQuery({
+  const { data: events = [], isLoading, isError, error, refetch } = useQuery({
     queryKey: ['calendar', year, month],
     queryFn: () => fetchCalendar(year, month),
   });
@@ -44,13 +45,15 @@ export function CalendarPage() {
         </div>
       </div>
 
-      {isLoading && <CardSkeleton />}
+      {isLoading && <PageSkeleton />}
 
-      {!isLoading && events.length === 0 && (
+      {isError && <QueryErrorView error={error} onRetry={refetch} />}
+
+      {!isLoading && !isError && events.length === 0 && (
         <EmptyState title="Нет событий" description="В этом месяце заседаний не запланировано." />
       )}
 
-      {!isLoading && events.length > 0 && (
+      {!isLoading && !isError && events.length > 0 && (
         <div className="bg-white rounded-lg shadow">
           {/* Day headers */}
           <div className="grid grid-cols-7 text-center text-xs font-medium text-gray-500 border-b py-2">

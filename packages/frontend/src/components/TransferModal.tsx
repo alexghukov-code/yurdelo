@@ -57,6 +57,9 @@ export function TransferModal({
       toast.success('Дело передано');
       onClose();
     },
+    onError: () => {
+      setConfirmed(false);
+    },
   });
 
   function onSubmit(values: FormValues) {

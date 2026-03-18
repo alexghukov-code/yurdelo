@@ -10,7 +10,8 @@
       "Bash(find /d/yurdelo -type f \\\\\\(-name *ТЗ* -o -name *TZ* \\\\\\))",
       "Bash(xargs grep:*)",
       "Bash(npx -y mammoth YurDelo_TZ_v2_1.docx --output-format=text)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "Bash(node:*)"
     ]
   }
 }

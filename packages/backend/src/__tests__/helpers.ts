@@ -70,7 +70,14 @@ export const USERS = {
 
 export function createMockPool() {
   const queryFn = vi.fn(async () => ({ rows: [] as any[], rowCount: 0 }));
-  const clientQueryFn = vi.fn(async () => ({ rows: [] as any[], rowCount: 0 }));
+  // Client query: auto-handle set_config/RESET (RLS context) transparently,
+  // delegate real queries to the same queryFn mock for test assertions.
+  const clientQueryFn = vi.fn(async (text: string, ...args: any[]) => {
+    if (typeof text === 'string' && (text.includes('set_config') || text.startsWith('RESET '))) {
+      return { rows: [{ set_config: '' }], rowCount: 1 };
+    }
+    return queryFn(text, ...args);
+  });
   const mockClient = { query: clientQueryFn, release: vi.fn() };
   return {
     query: queryFn,

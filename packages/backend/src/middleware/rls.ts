@@ -3,18 +3,16 @@ import type { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import '../types.js';
 
 /**
- * RLS middleware: wraps the DB pool so that EVERY query within a request
- * runs set_config in the SAME connection before executing.
+ * RLS middleware: sets up a lazy RLS proxy on req.rlsPool.
  *
- * Problem with naive approach:
- *   middleware: pool.query(set_config) → connection A → returned to pool
- *   handler:   pool.query(SELECT)     → connection B → RLS vars are NULL
+ * The proxy is created on first access (not immediately), because
+ * requireAuth runs AFTER this middleware and sets req.user.
  *
- * Solution: replace req-scoped `db` with a proxy that:
- *   - For pool.query(): checks out a client, sets RLS, runs query, releases
- *   - For pool.connect(): checks out a client, sets RLS, returns it
- *
- * This ensures set_config and the actual query share the SAME connection.
+ * Flow:
+ *   1. RLS middleware: defines lazy getter on req.rlsPool
+ *   2. requireAuth: sets req.user = { id, role, email }
+ *   3. Route handler: calls getDb(req, rawDb) → accesses req.rlsPool
+ *   4. Getter fires: creates RLS proxy using req.user (now available)
  */
 
 export interface RlsPool {
@@ -24,13 +22,20 @@ export interface RlsPool {
 
 export function createRlsMiddleware(pool: Pool | null): RequestHandler {
   return (req, res, next) => {
-    if (!pool || !req.user) return next();
+    if (!pool) return next();
 
-    const userId = req.user.id;
-    const userRole = req.user.role;
+    let cached: RlsPool | undefined;
 
-    // Replace req.db with RLS-aware proxy
-    (req as any).rlsPool = createRlsProxy(pool, userId, userRole);
+    Object.defineProperty(req, 'rlsPool', {
+      get() {
+        if (cached) return cached;
+        if (!req.user) return undefined;
+        cached = createRlsProxy(pool, req.user.id, req.user.role);
+        return cached;
+      },
+      configurable: true,
+      enumerable: true,
+    });
 
     next();
   };

@@ -6,10 +6,11 @@ import { AppError } from '../utils/errors.js';
 import { writeAuditLog } from '../utils/audit.js';
 import { validate, createStageSchema, updateStageSchema } from '../utils/validation.js';
 import { assertOwnership, checkExistsOrStale } from './cases.js';
+import { getDb } from '../utils/db.js';
 import '../types.js';
 
 export function stagesRouter(deps: { db: Pool; redis: Redis }) {
-  const { db } = deps;
+  const { db: rawDb } = deps;
   const router = Router();
 
   // ── POST /cases/:caseId/stages ──────────────────────
@@ -18,6 +19,7 @@ export function stagesRouter(deps: { db: Pool; redis: Redis }) {
     requireAuth,
     requireRole('admin', 'lawyer'),
     async (req, res) => {
+      const db = getDb(req, rawDb);
       await assertOwnership(db, req.params.caseId as string, req.user!);
       const body = validate(createStageSchema, req.body);
 
@@ -54,6 +56,7 @@ export function stagesRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── PATCH /stages/:id ───────────────────────────────
   router.patch('/stages/:id', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
+    const db = getDb(req, rawDb);
     // Lookup stage → case for ownership
     const {
       rows: [stage],
@@ -103,6 +106,7 @@ export function stagesRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── DELETE /stages/:id ──────────────────────────────
   router.delete('/stages/:id', requireAuth, requireRole('admin'), async (req, res) => {
+    const db = getDb(req, rawDb);
     const { rows: hearings } = await db.query(
       `SELECT id FROM hearings WHERE stage_id = $1 AND deleted_at IS NULL LIMIT 1`,
       [req.params.id],

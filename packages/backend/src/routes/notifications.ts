@@ -3,14 +3,16 @@ import type { Pool } from 'pg';
 import type { Redis } from 'ioredis';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError } from '../utils/errors.js';
+import { getDb } from '../utils/db.js';
 import '../types.js';
 
 export function notificationsRouter(deps: { db: Pool; redis: Redis }) {
-  const { db } = deps;
+  const { db: rawDb } = deps;
   const router = Router();
 
   // ── GET /notifications ──────────────────────────────
   router.get('/notifications', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
     const isReadFilter = req.query.is_read;
 
@@ -50,6 +52,7 @@ export function notificationsRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── PATCH /notifications/:id/read ───────────────────
   router.patch('/notifications/:id/read', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const { rowCount } = await db.query(
       `UPDATE notifications SET is_read = true
        WHERE id = $1 AND user_id = $2 AND is_read = false`,
@@ -70,6 +73,7 @@ export function notificationsRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── PATCH /notifications/read-all ───────────────────
   router.patch('/notifications/read-all', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const { rowCount } = await db.query(
       `UPDATE notifications SET is_read = true
        WHERE user_id = $1 AND is_read = false`,

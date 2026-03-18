@@ -12,14 +12,16 @@ import {
   deactivateUserSchema,
   restoreUserSchema,
 } from '../utils/validation.js';
+import { getDb } from '../utils/db.js';
 import '../types.js';
 
 export function usersRouter(deps: { db: Pool; redis: Redis }) {
-  const { db, redis } = deps;
+  const { db: rawDb, redis } = deps;
   const router = Router();
 
   // ── GET /users ──────────────────────────────────────
   router.get('/users', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
     const offset = (page - 1) * limit;
@@ -53,6 +55,7 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── POST /users ─────────────────────────────────────
   router.post('/users', requireAuth, requireRole('admin'), async (req, res) => {
+    const db = getDb(req, rawDb);
     const body = validate(createUserSchema, req.body);
 
     // Check email unique
@@ -95,6 +98,7 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── GET /users/:id ─────────────────────────────────
   router.get('/users/:id', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const { rows } = await db.query(
       `SELECT id, email, role, status, first_name, last_name, middle_name, phone,
               two_fa_enabled, terminate_date, terminate_reason, created_at, updated_at
@@ -108,6 +112,7 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── PATCH /users/:id ───────────────────────────────
   router.patch('/users/:id', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const isAdmin = req.user!.role === 'admin';
     const isSelf = req.user!.id === req.params.id;
 
@@ -185,7 +190,7 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
     }
 
     const body = validate(deactivateUserSchema, req.body);
-    const client = await db.connect();
+    const client = await rawDb.connect();
 
     try {
       await client.query('BEGIN');
@@ -296,7 +301,7 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
   // ── POST /users/:id/restore ────────────────────────
   router.post('/users/:id/restore', requireAuth, requireRole('admin'), async (req, res) => {
     const body = validate(restoreUserSchema, req.body);
-    const client = await db.connect();
+    const client = await rawDb.connect();
 
     try {
       await client.query('BEGIN');
@@ -357,6 +362,7 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── GET /users/:id/history ─────────────────────────
   router.get('/users/:id/history', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const { rows } = await db.query(
       `SELECT h.id, h.event, h.event_date, h.comment, h.created_at,
               u.first_name AS performed_by_first, u.last_name AS performed_by_last

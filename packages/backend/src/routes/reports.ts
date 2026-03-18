@@ -3,15 +3,17 @@ import type { Pool } from 'pg';
 import type { Redis } from 'ioredis';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { AppError } from '../utils/errors.js';
+import { getDb } from '../utils/db.js';
 import '../types.js';
 
 export function reportsRouter(deps: { db: Pool; redis: Redis }) {
-  const { db } = deps;
+  const { db: rawDb } = deps;
   const router = Router();
 
   // ── GET /reports/manager ────────────────────────────
   // Admin only. Tabs: load | results | stale | finance
   router.get('/reports/manager', requireAuth, requireRole('admin'), async (req, res) => {
+    const db = getDb(req, rawDb);
     const tab = (req.query.tab as string) || 'load';
 
     switch (tab) {
@@ -41,6 +43,7 @@ export function reportsRouter(deps: { db: Pool; redis: Redis }) {
   // ── GET /reports/cases ──────────────────────────────
   // Admin only. Tabs: summary | duration | instances
   router.get('/reports/cases', requireAuth, requireRole('admin'), async (req, res) => {
+    const db = getDb(req, rawDb);
     const tab = (req.query.tab as string) || 'summary';
     const dateFrom = (req.query.dateFrom as string) || null;
     const dateTo = (req.query.dateTo as string) || null;
@@ -68,6 +71,7 @@ export function reportsRouter(deps: { db: Pool; redis: Redis }) {
   // ── GET /reports/my ─────────────────────────────────
   // Admin + Lawyer (own stats)
   router.get('/reports/my', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
+    const db = getDb(req, rawDb);
     const userId = req.user!.id;
 
     const [loadRes, resultsRes] = await Promise.all([
@@ -86,6 +90,7 @@ export function reportsRouter(deps: { db: Pool; redis: Redis }) {
   // ── GET /reports/calendar ───────────────────────────
   // All roles. Lawyer sees own, Admin/Viewer see all.
   router.get('/reports/calendar', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const rawYear = parseInt(req.query.year as string);
     const rawMonth = parseInt(req.query.month as string);
     const year = Number.isNaN(rawYear) ? new Date().getFullYear() : rawYear;

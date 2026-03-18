@@ -7,17 +7,18 @@ import { writeAuditLog } from '../utils/audit.js';
 import { validate, createTransferSchema } from '../utils/validation.js';
 import { notifyTransfer } from '../services/notificationService.js';
 import type { Queue } from 'bullmq';
+import { getDb } from '../utils/db.js';
 import '../types.js';
 
 export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Queue | null }) {
-  const { db } = deps;
+  const { db: rawDb } = deps;
   const emailQueue = deps.emailQueue ?? null;
   const router = Router();
 
   // ── POST /transfers ─────────────────────────────────
   router.post('/transfers', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
     const body = validate(createTransferSchema, req.body);
-    const client = await db.connect();
+    const client = await rawDb.connect();
 
     try {
       await client.query('BEGIN');
@@ -89,7 +90,7 @@ export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Que
       await client.query('COMMIT');
 
       // After commit: fire-and-forget notifications (never blocks response)
-      notifyTransfer(db, emailQueue, {
+      notifyTransfer(rawDb, emailQueue, {
         caseId: body.caseId,
         caseName: caseRow.name,
         fromId: fromId,
@@ -109,6 +110,7 @@ export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Que
 
   // ── GET /transfers ──────────────────────────────────
   router.get('/transfers', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
     const offset = (page - 1) * limit;
@@ -170,6 +172,7 @@ export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Que
 
   // ── GET /transfers/:id ──────────────────────────────
   router.get('/transfers/:id', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const {
       rows: [t],
     } = await db.query(

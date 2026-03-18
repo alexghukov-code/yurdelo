@@ -6,10 +6,11 @@ import { AppError } from '../utils/errors.js';
 import { writeAuditLog } from '../utils/audit.js';
 import { validate, createHearingSchema, updateHearingSchema } from '../utils/validation.js';
 import { checkExistsOrStale } from './cases.js';
+import { getDb } from '../utils/db.js';
 import '../types.js';
 
 export function hearingsRouter(deps: { db: Pool; redis: Redis }) {
-  const { db } = deps;
+  const { db: rawDb } = deps;
   const router = Router();
 
   // ── POST /stages/:stageId/hearings ──────────────────
@@ -18,6 +19,7 @@ export function hearingsRouter(deps: { db: Pool; redis: Redis }) {
     requireAuth,
     requireRole('admin', 'lawyer'),
     async (req, res) => {
+      const db = getDb(req, rawDb);
       const body = validate(createHearingSchema, req.body);
 
       // Verify stage → case ownership
@@ -70,6 +72,7 @@ export function hearingsRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── PATCH /hearings/:id ─────────────────────────────
   router.patch('/hearings/:id', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
+    const db = getDb(req, rawDb);
     const {
       rows: [hearing],
     } = await db.query(
@@ -123,7 +126,7 @@ export function hearingsRouter(deps: { db: Pool; redis: Redis }) {
 
   // ── DELETE /hearings/:id ────────────────────────────
   router.delete('/hearings/:id', requireAuth, requireRole('admin'), async (req, res) => {
-    const client = await db.connect();
+    const client = await rawDb.connect();
     try {
       await client.query('BEGIN');
 

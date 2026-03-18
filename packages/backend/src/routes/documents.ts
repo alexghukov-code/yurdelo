@@ -6,6 +6,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { AppError } from '../utils/errors.js';
 import { writeAuditLog } from '../utils/audit.js';
 import type { S3Service } from '../services/s3Service.js';
+import { getDb } from '../utils/db.js';
 import '../types.js';
 
 const MAX_FILE_SIZE = 52_428_800; // 50 MB
@@ -28,7 +29,7 @@ const upload = multer({
 });
 
 export function documentsRouter(deps: { db: Pool; redis: Redis; s3?: S3Service }) {
-  const { db, s3 } = deps;
+  const { db: rawDb, s3 } = deps;
   const router = Router();
 
   // ── POST /hearings/:hearingId/documents ─────────────
@@ -40,6 +41,7 @@ export function documentsRouter(deps: { db: Pool; redis: Redis; s3?: S3Service }
     requireRole('admin', 'lawyer'),
     upload.single('file'),
     async (req, res) => {
+      const db = getDb(req, rawDb);
       const file = req.file;
       if (!file) throw AppError.badRequest('Файл обязателен (field: "file").');
 
@@ -111,6 +113,7 @@ export function documentsRouter(deps: { db: Pool; redis: Redis; s3?: S3Service }
   // Returns signed URL valid for 1 hour.
   // Viewer: allowed if case is visible (all cases for viewer).
   router.get('/documents/:id/url', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     const {
       rows: [doc],
     } = await db.query(
@@ -148,6 +151,7 @@ export function documentsRouter(deps: { db: Pool; redis: Redis; s3?: S3Service }
   //   Viewer → never
   // Soft delete in DB + tag deleted=true in S3
   router.delete('/documents/:id', requireAuth, async (req, res) => {
+    const db = getDb(req, rawDb);
     if (req.user!.role === 'viewer') {
       throw AppError.forbidden('Наблюдатель не может удалять документы.');
     }

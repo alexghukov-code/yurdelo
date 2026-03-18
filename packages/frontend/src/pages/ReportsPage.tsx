@@ -88,13 +88,48 @@ function MyReportTab() {
   if (!data) return <EmptyState title="Недостаточно данных" description="Нет данных для отчёта." />;
 
   const { load, results } = data;
+  const wins = results?.wins ?? 0;
+  const losses = results?.losses ?? 0;
+  const partial = results?.partial ?? 0;
+  const maxBar = Math.max(wins, losses, partial, 1);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-      <StatCard label="Активные дела" value={load?.activeCases ?? 0} />
-      <StatCard label="Закрытые дела" value={load?.closedCases ?? 0} />
-      <StatCard label="Win Rate" value={results?.winRate != null ? `${results.winRate}%` : '—'} />
-      <StatCard label="Всего решённых" value={results?.decided ?? 0} />
+    <div className="space-y-6">
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+        <StatCard label="Активные" value={load?.activeCases ?? 0} />
+        <StatCard label="Закрытые" value={load?.closedCases ?? 0} />
+        <StatCard label="Всего дел" value={load?.totalCases ?? 0} />
+        <StatCard label="Победы" value={wins} />
+        <StatCard label="Проигрыши" value={losses} />
+        <StatCard label="Win Rate" value={results?.winRate != null ? `${results.winRate}%` : '—'} />
+      </div>
+
+      {/* Results breakdown */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">Результаты дел</h3>
+        <div className="space-y-3">
+          <BarRow label="Победы" count={wins} max={maxBar} color="bg-green-500" />
+          <BarRow label="Проигрыши" count={losses} max={maxBar} color="bg-red-400" />
+          <BarRow label="Частично" count={partial} max={maxBar} color="bg-yellow-400" />
+        </div>
+        <p className="text-xs text-gray-400 mt-4">
+          Всего решённых: {results?.decided ?? 0}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function BarRow({ label, count, max, color }: { label: string; count: number; max: number; color: string }) {
+  const pct = max > 0 ? (count / max) * 100 : 0;
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-sm text-gray-600 w-24">{label}</span>
+      <div className="flex-1 h-5 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-sm font-medium text-gray-900 w-8 text-right">{count}</span>
     </div>
   );
 }

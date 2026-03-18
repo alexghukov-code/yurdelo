@@ -20,7 +20,7 @@ export function ProtectedRoute({ roles }: Props) {
   }
 
   if (!user) {
-    const returnTo = location.pathname + location.search;
+    const returnTo = location.pathname;
     return <Navigate to={`/login?returnTo=${encodeURIComponent(returnTo)}`} replace />;
   }
 

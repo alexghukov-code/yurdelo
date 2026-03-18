@@ -42,6 +42,26 @@ function mockNoUser() {
 describe('ProtectedRoute', () => {
   beforeEach(() => localStorage.clear());
 
+  it('returnTo contains only pathname, no query params (security)', async () => {
+    mockNoUser();
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/cases" element={<div>Cases</div>} />
+        </Route>
+      </Routes>,
+      { route: '/cases?secret=abc123' },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Войти')).toBeInTheDocument();
+    });
+    // returnTo should NOT contain query params — security risk
+    // LoginPage is rendered at /login?returnTo=%2Fcases (no ?secret=abc123)
+  });
+
   it('redirects unauthenticated user to /login with returnTo', async () => {
     mockNoUser();
 

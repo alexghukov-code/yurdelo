@@ -195,7 +195,7 @@ export function CaseDetailPage() {
             </div>
             <InfoCard
               label="Цена иска"
-              value={c.claimAmount ? `${c.claimAmount.toLocaleString('ru')} ₽` : '—'}
+              value={c.claimAmount != null ? `${c.claimAmount.toLocaleString('ru')} ₽` : '—'}
             />
             <InfoCard label="Создано" value={new Date(c.createdAt).toLocaleDateString('ru')} />
           </div>

@@ -58,7 +58,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError);
         localStorage.removeItem('accessToken');
-        const returnTo = window.location.pathname + window.location.search;
+        const returnTo = window.location.pathname;
         window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
         return Promise.reject(refreshError);
       } finally {

@@ -1,6 +1,7 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import {
-  Briefcase, Users, Calendar, BarChart3, Scale, UserCog,
+  Briefcase, Users, Calendar, BarChart3, Scale, UserCog, X,
 } from 'lucide-react';
 import { can, type Permission } from '../lib/permissions';
 
@@ -14,16 +15,28 @@ const NAV: Array<{ to: string; label: string; icon: React.ElementType; allow: Pe
 
 interface SidebarProps {
   role: string;
+  open: boolean;
+  onClose: () => void;
 }
 
-export function Sidebar({ role }: SidebarProps) {
-  return (
-    <aside className="w-56 bg-white border-r flex flex-col">
-      <div className="px-4 py-5 border-b">
+export function Sidebar({ role, open, onClose }: SidebarProps) {
+  const location = useLocation();
+
+  // Close drawer on navigation
+  useEffect(() => {
+    onClose();
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const nav = (
+    <>
+      <div className="px-4 py-5 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Scale className="h-6 w-6 text-blue-600" />
           <span className="text-lg font-bold text-gray-900">ЮрДело</span>
         </div>
+        <button onClick={onClose} className="md:hidden p-1 text-gray-400 hover:text-gray-600">
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
       <nav className="flex-1 px-2 py-4 space-y-1">
@@ -45,6 +58,25 @@ export function Sidebar({ role }: SidebarProps) {
           </NavLink>
         ))}
       </nav>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop: static sidebar */}
+      <aside className="hidden md:flex w-56 bg-white border-r flex-col">
+        {nav}
+      </aside>
+
+      {/* Mobile: drawer overlay */}
+      {open && (
+        <div className="md:hidden fixed inset-0 z-40">
+          <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+          <aside className="relative z-50 w-64 h-full bg-white flex flex-col shadow-xl">
+            {nav}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

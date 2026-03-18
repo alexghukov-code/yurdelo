@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useCaseDetail, useUpdateCaseStatus, useSetFinalResult, useDeleteCase } from '../hooks/useCases';
 import { useAuth } from '../hooks/useAuth';
-import { CardSkeleton } from '../components/Skeleton';
+import { PageSkeleton } from '../components/PageSkeleton';
 import { QueryErrorView } from '../components/QueryErrorView';
 import { StaleDataModal } from '../components/StaleDataModal';
 import { ArrowLeft, Trash2 } from 'lucide-react';
@@ -18,7 +18,7 @@ export function CaseDetailPage() {
   const deleteCase = useDeleteCase();
   const [staleOpen, setStaleOpen] = useState(false);
 
-  if (isLoading) return <CardSkeleton />;
+  if (isLoading) return <PageSkeleton />;
   if (isError) return <QueryErrorView error={error} onRetry={refetch} />;
   if (!caseData) return null;
 

@@ -4,7 +4,7 @@ import { Plus, Search } from 'lucide-react';
 import { PermissionGate } from '../components/PermissionGate';
 import { useCasesList } from '../hooks/useCases';
 import { useDebounce } from '../hooks/useDebounce';
-import { TableSkeleton } from '../components/Skeleton';
+import { PageSkeleton } from '../components/PageSkeleton';
 import { EmptyState } from '../components/EmptyState';
 import { QueryErrorView } from '../components/QueryErrorView';
 
@@ -66,7 +66,7 @@ export function CasesPage() {
       </div>
 
       {/* Content */}
-      {isLoading && <TableSkeleton rows={8} cols={5} />}
+      {isLoading && <PageSkeleton variant="table" />}
 
       {isError && <QueryErrorView error={error} onRetry={refetch} />}
 

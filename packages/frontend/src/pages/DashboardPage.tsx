@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { fetchCases } from '../api/cases';
 import { fetchMyReport } from '../api/reports';
-import { CardSkeleton } from '../components/Skeleton';
+import { PageSkeleton } from '../components/PageSkeleton';
 import { Briefcase, TrendingUp, AlertTriangle } from 'lucide-react';
 
 export function DashboardPage() {
@@ -20,15 +20,7 @@ export function DashboardPage() {
     enabled: user?.role !== 'viewer',
   });
 
-  if (casesLoading || reportLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <CardSkeleton />
-        <CardSkeleton />
-        <CardSkeleton />
-      </div>
-    );
-  }
+  if (casesLoading || reportLoading) return <PageSkeleton />;
 
   const load = report?.load;
   const results = report?.results;

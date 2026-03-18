@@ -1,6 +1,6 @@
 import { getHttpStatus } from '../api/client';
 import { ErrorAlert } from './ErrorAlert';
-import { AccessDenied } from './ProtectedRoute';
+import { ForbiddenState } from './ForbiddenState';
 
 interface QueryErrorViewProps {
   error: unknown;
@@ -15,7 +15,7 @@ const STATUS_MESSAGES: Record<number, string> = {
 export function QueryErrorView({ error, onRetry }: QueryErrorViewProps) {
   const status = getHttpStatus(error);
 
-  if (status === 403) return <AccessDenied />;
+  if (status === 403) return <ForbiddenState />;
 
   const message = STATUS_MESSAGES[status ?? 0] ?? 'Не удалось загрузить данные.';
   const showRetry = status !== 404;

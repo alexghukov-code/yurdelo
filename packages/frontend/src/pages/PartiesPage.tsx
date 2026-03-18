@@ -166,6 +166,8 @@ interface PartyFormValues {
   address: string;
   phone: string;
   email: string;
+  isPlaintiff: boolean;
+  isDefendant: boolean;
 }
 
 function PartyModal({ mode, party, onClose, onSuccess }: PartyModalProps) {
@@ -181,6 +183,8 @@ function PartyModal({ mode, party, onClose, onSuccess }: PartyModalProps) {
       address: party?.address ?? '',
       phone: party?.phone ?? '',
       email: party?.email ?? '',
+      isPlaintiff: party?.isPlaintiff ?? true,
+      isDefendant: party?.isDefendant ?? true,
     },
   });
 
@@ -205,7 +209,11 @@ function PartyModal({ mode, party, onClose, onSuccess }: PartyModalProps) {
 
   function onSubmit(values: PartyFormValues) {
     // Strip empty strings to undefined — backend Zod rejects "" for optional email
-    const clean: Record<string, unknown> = { name: values.name };
+    const clean: Record<string, unknown> = {
+      name: values.name,
+      isPlaintiff: values.isPlaintiff,
+      isDefendant: values.isDefendant,
+    };
     if (values.inn) clean.inn = values.inn;
     if (values.ogrn) clean.ogrn = values.ogrn;
     if (values.address) clean.address = values.address;
@@ -297,6 +305,16 @@ function PartyModal({ mode, party, onClose, onSuccess }: PartyModalProps) {
               {...register('email')}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             />
+          </div>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" {...register('isPlaintiff')} className="rounded" />
+              Истец
+            </label>
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" {...register('isDefendant')} className="rounded" />
+              Ответчик
+            </label>
           </div>
           <button
             type="submit"

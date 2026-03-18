@@ -70,6 +70,8 @@ export const createPartySchema = z.object({
   address: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email('Некорректный email.').optional(),
+  isPlaintiff: z.boolean().optional(),
+  isDefendant: z.boolean().optional(),
 });
 
 export const updatePartySchema = z.object({
@@ -79,6 +81,8 @@ export const updatePartySchema = z.object({
   address: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
   email: z.string().email('Некорректный email.').nullable().optional(),
+  isPlaintiff: z.boolean().optional(),
+  isDefendant: z.boolean().optional(),
   updatedAt: z.string({ required_error: 'updatedAt обязателен для optimistic locking.' }),
 });
 

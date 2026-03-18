@@ -9,6 +9,8 @@ export interface Party {
   address?: string;
   phone?: string;
   email?: string;
+  isPlaintiff?: boolean;
+  isDefendant?: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -124,34 +124,21 @@ describe('CaseForm', () => {
     });
   });
 
-  it('shows warning when plaintiff equals defendant', async () => {
+  it('excludes selected plaintiff from defendant list', async () => {
     renderForm();
 
     await waitFor(() => {
       expect(screen.getAllByText(/ООО Альфа/).length).toBeGreaterThan(0);
     });
 
+    // Select plaintiff
     const selects = screen.getAllByRole('listbox');
     fireEvent.change(selects[0], { target: { value: 'p1' } });
-    fireEvent.change(selects[1], { target: { value: 'p1' } });
 
-    await waitFor(() => {
-      expect(screen.getByText('Истец и ответчик совпадают.')).toBeInTheDocument();
-    });
-  });
-
-  it('no warning when plaintiff differs from defendant', async () => {
-    renderForm();
-
-    await waitFor(() => {
-      expect(screen.getAllByText(/ООО Альфа/).length).toBeGreaterThan(0);
-    });
-
-    const selects = screen.getAllByRole('listbox');
-    fireEvent.change(selects[0], { target: { value: 'p1' } });
-    fireEvent.change(selects[1], { target: { value: 'p2' } });
-
-    expect(screen.queryByText('Истец и ответчик совпадают.')).not.toBeInTheDocument();
+    // Defendant list should not contain p1 (excluded via excludeId)
+    const defOptions = Array.from(selects[1].querySelectorAll('option'));
+    const p1InDef = defOptions.find((o) => o.value === 'p1');
+    expect(p1InDef).toBeUndefined();
   });
 
   it('calls onCancel when cancel button clicked', async () => {

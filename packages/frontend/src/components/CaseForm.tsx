@@ -111,6 +111,8 @@ export function CaseForm({ mode, initialData, onSubmit, onCancel, isSubmitting }
             value={field.value}
             onChange={field.onChange}
             error={errors.pltId?.message}
+            filter="plaintiff"
+            excludeId={defId}
           />
         )}
       />
@@ -126,6 +128,8 @@ export function CaseForm({ mode, initialData, onSubmit, onCancel, isSubmitting }
             value={field.value}
             onChange={field.onChange}
             error={errors.defId?.message}
+            filter="defendant"
+            excludeId={pltId}
           />
         )}
       />

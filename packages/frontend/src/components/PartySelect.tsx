@@ -8,9 +8,13 @@ interface PartySelectProps {
   value: string;
   onChange: (id: string) => void;
   error?: string;
+  /** Filter parties: 'plaintiff' | 'defendant' | undefined (all) */
+  filter?: 'plaintiff' | 'defendant';
+  /** Exclude party ID (prevent same plaintiff and defendant) */
+  excludeId?: string;
 }
 
-export function PartySelect({ label, value, onChange, error }: PartySelectProps) {
+export function PartySelect({ label, value, onChange, error, filter, excludeId }: PartySelectProps) {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 300);
 
@@ -20,7 +24,19 @@ export function PartySelect({ label, value, onChange, error }: PartySelectProps)
     placeholderData: (prev) => prev,
   });
 
-  const parties = data?.data ?? [];
+  let parties = data?.data ?? [];
+
+  // Filter by role
+  if (filter === 'plaintiff') {
+    parties = parties.filter((p) => p.isPlaintiff !== false);
+  } else if (filter === 'defendant') {
+    parties = parties.filter((p) => p.isDefendant !== false);
+  }
+
+  // Exclude selected party from other selector
+  if (excludeId) {
+    parties = parties.filter((p) => p.id !== excludeId);
+  }
 
   return (
     <div>

@@ -36,7 +36,7 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
     const [{ rows }, { rows: countRows }] = await Promise.all([
       db.query(
         `SELECT p.id, p.name, p.inn, p.ogrn, p.address, p.phone, p.email,
-                p.created_at, p.updated_at
+                p.is_plaintiff, p.is_defendant, p.created_at, p.updated_at
          FROM parties p
          ${where}
          ORDER BY p.name
@@ -71,8 +71,8 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
     }
 
     const { rows } = await db.query(
-      `INSERT INTO parties (name, inn, ogrn, address, phone, email)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO parties (name, inn, ogrn, address, phone, email, is_plaintiff, is_defendant)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
       [
         body.name,
@@ -81,6 +81,8 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
         body.address ?? null,
         body.phone ?? null,
         body.email ?? null,
+        body.isPlaintiff ?? true,
+        body.isDefendant ?? true,
       ],
     );
 
@@ -143,6 +145,8 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
       address: 'address',
       phone: 'phone',
       email: 'email',
+      isPlaintiff: 'is_plaintiff',
+      isDefendant: 'is_defendant',
     };
     const sets: string[] = [];
     const vals: unknown[] = [];
@@ -225,6 +229,8 @@ function formatParty(p: any) {
     address: p.address,
     phone: p.phone,
     email: p.email,
+    isPlaintiff: p.is_plaintiff,
+    isDefendant: p.is_defendant,
     createdAt: p.created_at,
     updatedAt: p.updated_at,
   };

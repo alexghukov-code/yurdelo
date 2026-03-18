@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { fetchUsers } from '../api/users';
 import { useAuth } from '../hooks/useAuth';
@@ -101,8 +102,10 @@ export function UsersPage() {
               <tbody className="divide-y">
                 {data.data.map((u) => (
                   <tr key={u.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      {u.lastName} {u.firstName}{u.middleName ? ` ${u.middleName}` : ''}
+                    <td className="px-4 py-3">
+                      <Link to={`/users/${u.id}`} className="font-medium text-blue-600 hover:text-blue-800">
+                        {u.lastName} {u.firstName}{u.middleName ? ` ${u.middleName}` : ''}
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-gray-500">{ROLE_LABELS[u.role] ?? u.role}</td>
                     <td className="px-4 py-3">

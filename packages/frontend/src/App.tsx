@@ -13,6 +13,7 @@ import { PartiesPage } from './pages/PartiesPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { CaseCreatePage } from './pages/CaseCreatePage';
 import { UsersPage } from './pages/UsersPage';
+import { UserProfilePage } from './pages/UserProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 function handleMutationError(err: unknown) {
@@ -54,6 +55,7 @@ export function App() {
                 <Route path="parties" element={<PartiesPage />} />
                 <Route path="calendar" element={<CalendarPage />} />
                 <Route path="users" element={<UsersPage />} />
+                <Route path="users/:id" element={<UserProfilePage />} />
               </Route>
             </Route>
 

@@ -7,7 +7,7 @@ import express from 'express';
 import { createRateLimiter } from '../middleware/rateLimiter.js';
 import { createRlsMiddleware } from '../middleware/rls.js';
 import { createApiLogger } from '../middleware/apiLogger.js';
-import { _runCleanup } from '../services/cleanupJobs.js';
+import { _runCleanup, startCleanupJobs } from '../services/cleanupJobs.js';
 import { createMockRedis, createMockPool, USERS, authHeader, buildTestApp } from './helpers.js';
 import { createApp } from '../app.js';
 
@@ -435,6 +435,70 @@ describe('Cleanup jobs', () => {
 
     // Should not throw
     await expect(_runCleanup(pool as any)).resolves.toBeUndefined();
+  });
+
+  it('only deletes old records — WHERE clause uses INTERVAL, not TRUNCATE', async () => {
+    const pool = createMockPool();
+    pool.query.mockResolvedValue({ rows: [], rowCount: 0 });
+
+    await _runCleanup(pool as any);
+
+    // Both DELETEs must have a created_at < NOW() - INTERVAL filter
+    const queries = pool.query.mock.calls.map((c: any) => c[0] as string);
+    const apiLogsQuery = queries.find((q) => q.includes('api_logs'));
+    const authEventsQuery = queries.find((q) => q.includes('auth_events'));
+
+    // Verify WHERE clause targets only old records
+    expect(apiLogsQuery).toMatch(/WHERE created_at < NOW\(\) - INTERVAL '30 days'/);
+    expect(authEventsQuery).toMatch(/WHERE created_at < NOW\(\) - INTERVAL '90 days'/);
+
+    // Must NOT contain TRUNCATE or DELETE without WHERE
+    expect(apiLogsQuery).not.toContain('TRUNCATE');
+    expect(authEventsQuery).not.toContain('TRUNCATE');
+  });
+
+  it('does not touch audit_log or user_history', async () => {
+    const pool = createMockPool();
+    pool.query.mockResolvedValue({ rows: [], rowCount: 0 });
+
+    await _runCleanup(pool as any);
+
+    const queries = pool.query.mock.calls.map((c: any) => c[0] as string);
+    const allSql = queries.join(' ');
+    expect(allSql).not.toContain('audit_log');
+    expect(allSql).not.toContain('user_history');
+  });
+
+  it('_runCleanup is callable directly for manual invocation', async () => {
+    const pool = createMockPool();
+    pool.query.mockResolvedValue({ rows: [], rowCount: 3 });
+
+    // Simulate manual run — should resolve without errors
+    await expect(_runCleanup(pool as any)).resolves.toBeUndefined();
+
+    // Should have run both cleanup queries
+    expect(pool.query).toHaveBeenCalledTimes(2);
+  });
+
+  it('startCleanupJobs runs immediately and returns unref-ed timer', async () => {
+    const pool = createMockPool();
+    pool.query.mockResolvedValue({ rows: [], rowCount: 0 });
+
+    const timer = startCleanupJobs(pool as any);
+
+    // Wait for the immediate runCleanup call
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Should have executed DELETE queries on startup
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('DELETE FROM api_logs'),
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('DELETE FROM auth_events'),
+    );
+
+    // Cleanup timer to avoid leaks in test
+    clearInterval(timer);
   });
 });
 

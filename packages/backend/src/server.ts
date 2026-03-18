@@ -1,5 +1,6 @@
 import { createApp } from './app.js';
 import { config } from './config/index.js';
+import { startCleanupJobs } from './services/cleanupJobs.js';
 import pino from 'pino';
 
 const logger = pino({
@@ -15,6 +16,9 @@ async function start() {
 
     await db.query('SELECT 1');
     logger.info('PostgreSQL connected');
+
+    startCleanupJobs(db);
+    logger.info('Cleanup jobs scheduled (api_logs 30d, auth_events 90d)');
 
     app.listen(config.port, () => {
       logger.info(`Server running on http://localhost:${config.port}`);

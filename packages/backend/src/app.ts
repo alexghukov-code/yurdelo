@@ -48,6 +48,9 @@ export function createApp(deps?: {
       ? deps.emailQueue
       : new Queue(EMAIL_QUEUE_NAME, { connection: redis as any });
 
+  // Trust first proxy (nginx) — req.ip uses X-Forwarded-For
+  app.set('trust proxy', 1);
+
   app.use(express.json());
   app.use(cookieParser());
 

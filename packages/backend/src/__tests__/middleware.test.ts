@@ -332,6 +332,74 @@ describe('API logger middleware', () => {
     const res = await request(app).get('/test');
     expect(res.status).toBe(200);
   });
+
+  it('logs error status codes (4xx/5xx)', async () => {
+    const pool = createMockPool();
+    pool.query.mockResolvedValue({ rows: [], rowCount: 0 });
+
+    const app = express();
+    app.use(createApiLogger(pool as any));
+    app.get('/missing', (_req, res) => res.status(404).json({ error: 'not found' }));
+
+    await request(app).get('/missing');
+    await new Promise((r) => setTimeout(r, 50));
+
+    const params = pool.query.mock.calls[0]?.[1] as any[];
+    expect(params[2]).toBe(404);
+  });
+
+  it('user_id is null for unauthenticated requests', async () => {
+    const pool = createMockPool();
+    pool.query.mockResolvedValue({ rows: [], rowCount: 0 });
+
+    const app = express();
+    // No user middleware — req.user is undefined
+    app.use(createApiLogger(pool as any));
+    app.get('/public', (_req, res) => res.json({ ok: true }));
+
+    await request(app).get('/public');
+    await new Promise((r) => setTimeout(r, 50));
+
+    const params = pool.query.mock.calls[0]?.[1] as any[];
+    // user_id is the 5th param (index 4)
+    expect(params[4]).toBeNull();
+  });
+
+  it('truncates long URLs to 500 characters', async () => {
+    const pool = createMockPool();
+    pool.query.mockResolvedValue({ rows: [], rowCount: 0 });
+
+    const app = express();
+    app.use(createApiLogger(pool as any));
+    const longPath = '/x'.repeat(400);
+    app.get(longPath, (_req, res) => res.json({ ok: true }));
+
+    await request(app).get(longPath);
+    await new Promise((r) => setTimeout(r, 50));
+
+    const params = pool.query.mock.calls[0]?.[1] as any[];
+    // url is the 2nd param (index 1)
+    expect(params[1].length).toBeLessThanOrEqual(500);
+  });
+
+  it('uses X-Forwarded-For when trust proxy is set', async () => {
+    const pool = createMockPool();
+    pool.query.mockResolvedValue({ rows: [], rowCount: 0 });
+
+    const app = express();
+    app.set('trust proxy', 1);
+    app.use(createApiLogger(pool as any));
+    app.get('/test', (_req, res) => res.json({ ok: true }));
+
+    await request(app)
+      .get('/test')
+      .set('X-Forwarded-For', '203.0.113.50');
+    await new Promise((r) => setTimeout(r, 50));
+
+    const params = pool.query.mock.calls[0]?.[1] as any[];
+    // ip_address is the 6th param (index 5)
+    expect(params[5]).toBe('203.0.113.50');
+  });
 });
 
 // ═══════════════════════════════════════════════════════

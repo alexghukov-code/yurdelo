@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, Pencil, Clock } from 'lucide-react';
+import { ArrowLeft, Pencil, Clock, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { fetchUser, updateUser, fetchUserHistory } from '../api/users';
-import { changePassword } from '../api/auth';
+import { changePassword, setup2fa, verify2fa } from '../api/auth';
 import { isStaleDataError } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { PageSkeleton } from '../components/PageSkeleton';
@@ -141,6 +141,9 @@ export function UserProfilePage() {
       {/* Change password — own profile only */}
       {isSelf && <ChangePasswordSection />}
 
+      {/* 2FA — own profile only */}
+      {isSelf && <TwoFaSection twoFaEnabled={profile.twoFaEnabled ?? false} isAdmin={profile.role === 'admin'} onEnabled={() => refetch()} />}
+
       {/* History section */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -246,6 +249,106 @@ function ChangePasswordSection() {
           {mutation.isPending ? 'Сохранение...' : 'Изменить пароль'}
         </button>
       </form>
+    </div>
+  );
+}
+
+/* ── 2FA setup ── */
+
+function TwoFaSection({ twoFaEnabled, isAdmin, onEnabled }: { twoFaEnabled: boolean; isAdmin: boolean; onEnabled: () => void }) {
+  const [step, setStep] = useState<'idle' | 'qr' | 'done'>(twoFaEnabled ? 'done' : 'idle');
+  const [qrData, setQrData] = useState<{ qrCodeUrl: string; secret: string } | null>(null);
+  const [code, setCode] = useState('');
+
+  const setupMut = useMutation({
+    mutationFn: setup2fa,
+    onSuccess: (data) => {
+      setQrData(data);
+      setStep('qr');
+    },
+  });
+
+  const verifyMut = useMutation({
+    mutationFn: () => verify2fa(code),
+    onSuccess: () => {
+      toast.success('Двухфакторная аутентификация активирована.');
+      setStep('done');
+      setQrData(null);
+      setCode('');
+      onEnabled();
+    },
+  });
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">Двухфакторная аутентификация</h2>
+
+      {step === 'done' && (
+        <div className="flex items-center gap-2 text-sm text-green-700">
+          <ShieldCheck className="h-5 w-5" />
+          Включена
+        </div>
+      )}
+
+      {step === 'idle' && (
+        <div>
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+            <ShieldAlert className="h-5 w-5 text-yellow-500" />
+            Отключена
+          </div>
+          {isAdmin && (
+            <p className="text-xs text-yellow-600 mb-3">Для руководителей 2FA обязательна.</p>
+          )}
+          <button
+            onClick={() => setupMut.mutate()}
+            disabled={setupMut.isPending}
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {setupMut.isPending ? 'Генерация...' : 'Настроить 2FA'}
+          </button>
+        </div>
+      )}
+
+      {step === 'qr' && qrData && (
+        <div className="max-w-sm space-y-4">
+          <p className="text-sm text-gray-600">
+            Отсканируйте QR-код в Google Authenticator или другом TOTP-приложении.
+          </p>
+          <img src={qrData.qrCodeUrl} alt="QR-код 2FA" className="w-48 h-48 border rounded-lg" />
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Или введите ключ вручную:</p>
+            <code className="text-xs bg-gray-100 px-2 py-1 rounded select-all break-all">{qrData.secret}</code>
+          </div>
+          <div>
+            <label htmlFor="tfa-code" className="block text-sm font-medium text-gray-700 mb-1">Код из приложения</label>
+            <input
+              id="tfa-code"
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              placeholder="000000"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => verifyMut.mutate()}
+              disabled={code.length !== 6 || verifyMut.isPending}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {verifyMut.isPending ? 'Проверка...' : 'Подтвердить'}
+            </button>
+            <button
+              onClick={() => { setStep('idle'); setQrData(null); setCode(''); }}
+              className="px-4 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
+            >
+              Отмена
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

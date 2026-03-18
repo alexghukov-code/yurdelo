@@ -39,3 +39,13 @@ export async function changePassword(body: { oldPassword: string; newPassword: s
   const { data } = await api.post<{ data: { message: string } }>('/auth/change-password', body);
   return data.data;
 }
+
+export async function setup2fa() {
+  const { data } = await api.post<{ data: { qrCodeUrl: string; secret: string } }>('/auth/2fa/setup');
+  return data.data;
+}
+
+export async function verify2fa(code: string) {
+  const { data } = await api.post<{ data: { message: string } }>('/auth/2fa/verify', { code });
+  return data.data;
+}

@@ -7,7 +7,9 @@ import { PageSkeleton } from '../components/PageSkeleton';
 import { QueryErrorView } from '../components/QueryErrorView';
 import { StaleDataModal } from '../components/StaleDataModal';
 import { CaseForm, type CaseFormValues } from '../components/CaseForm';
-import { ArrowLeft, Trash2, Pencil } from 'lucide-react';
+import { ArrowLeft, Trash2, Pencil, Plus } from 'lucide-react';
+import { StageFormModal } from '../components/StageFormModal';
+import type { Stage } from '../api/cases';
 import { PermissionGate } from '../components/PermissionGate';
 import { usePermission } from '../hooks/usePermission';
 import { StatusMenu } from '../components/StatusMenu';
@@ -24,6 +26,7 @@ export function CaseDetailPage() {
   const deleteCase = useDeleteCase();
   const [editing, setEditing] = useState(false);
   const [staleOpen, setStaleOpen] = useState(false);
+  const [stageModal, setStageModal] = useState<{ mode: 'create' | 'edit'; stage?: Stage } | null>(null);
 
   if (isLoading) return <PageSkeleton />;
   if (isError) return <QueryErrorView error={error} onRetry={refetch} />;
@@ -155,7 +158,18 @@ export function CaseDetailPage() {
           </div>
 
           {/* Stages + hearings */}
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Стадии</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-gray-900">Стадии</h2>
+            {canEdit && (
+              <button
+                onClick={() => setStageModal({ mode: 'create' })}
+                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+              >
+                <Plus className="h-4 w-4" />
+                Стадия
+              </button>
+            )}
+          </div>
           {(!c.stages || c.stages.length === 0) ? (
             <p className="text-sm text-gray-400">Стадий пока нет.</p>
           ) : (
@@ -164,7 +178,17 @@ export function CaseDetailPage() {
                 <div key={s.id} className="bg-white rounded-lg shadow p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium text-gray-900">{s.stageTypeName}</h3>
-                    <span className="text-xs text-gray-500">{s.court} &middot; {s.caseNumber}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{s.court} &middot; {s.caseNumber}</span>
+                      {canEdit && (
+                        <button
+                          onClick={() => setStageModal({ mode: 'edit', stage: s })}
+                          className="p-1 text-gray-400 hover:text-gray-600"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {s.hearings.length === 0 ? (
                     <p className="text-sm text-gray-400">Слушаний нет.</p>
@@ -192,6 +216,17 @@ export function CaseDetailPage() {
                 </div>
               ))}
             </div>
+          )}
+
+          {stageModal && (
+            <StageFormModal
+              mode={stageModal.mode}
+              caseId={c.id}
+              existingStages={c.stages ?? []}
+              initialData={stageModal.stage}
+              onClose={() => setStageModal(null)}
+              onStale={() => { setStageModal(null); setStaleOpen(true); }}
+            />
           )}
         </>
       )}

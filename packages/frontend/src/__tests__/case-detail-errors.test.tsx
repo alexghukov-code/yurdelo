@@ -37,6 +37,71 @@ function renderCaseDetail(caseId: string) {
   );
 }
 
+describe('CaseDetailPage edge cases', () => {
+  it('claimAmount=0 displays as "0 ₽", not "—"', async () => {
+    server.use(
+      http.get('/api/v1/cases/:id', () =>
+        HttpResponse.json({
+          data: {
+            id: 'c1', name: 'Дело', category: 'civil', status: 'active',
+            finalResult: null, claimAmount: 0, lawyerId: 'u1',
+            pltId: 'p1', defId: 'p2', pltName: 'Альфа', defName: 'Бета',
+            lawyerName: 'Петрова Мария', closedAt: null,
+            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+            stages: [],
+          },
+        }),
+      ),
+      http.get('/api/v1/transfers', () =>
+        HttpResponse.json({ data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 } }),
+      ),
+      http.get('/api/v1/notifications', () =>
+        HttpResponse.json({ data: [], meta: { unreadCount: 0 } }),
+      ),
+    );
+
+    renderCaseDetail('c1');
+
+    await waitFor(() => {
+      expect(screen.getByText('Дело')).toBeInTheDocument();
+    });
+    expect(screen.getByText('0 ₽')).toBeInTheDocument();
+  });
+
+  it('claimAmount=null displays as "—"', async () => {
+    server.use(
+      http.get('/api/v1/cases/:id', () =>
+        HttpResponse.json({
+          data: {
+            id: 'c2', name: 'Дело 2', category: 'civil', status: 'active',
+            finalResult: null, claimAmount: null, lawyerId: 'u1',
+            pltId: 'p1', defId: 'p2', pltName: 'Альфа', defName: 'Бета',
+            lawyerName: 'Петрова Мария', closedAt: null,
+            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+            stages: [],
+          },
+        }),
+      ),
+      http.get('/api/v1/transfers', () =>
+        HttpResponse.json({ data: [], meta: { page: 1, limit: 20, total: 0, totalPages: 0 } }),
+      ),
+      http.get('/api/v1/notifications', () =>
+        HttpResponse.json({ data: [], meta: { unreadCount: 0 } }),
+      ),
+    );
+
+    renderCaseDetail('c2');
+
+    await waitFor(() => {
+      expect(screen.getByText('Дело 2')).toBeInTheDocument();
+    });
+    // "—" is displayed for the claim amount info card
+    const infoCards = document.querySelectorAll('.bg-white.rounded-lg.shadow.px-4.py-3');
+    const amountCard = Array.from(infoCards).find((c) => c.textContent?.includes('Цена иска'));
+    expect(amountCard?.textContent).toContain('—');
+  });
+});
+
 describe('CaseDetailPage error handling (bug #5)', () => {
   it('shows "Нет доступа" on 403 without retry button', async () => {
     server.use(

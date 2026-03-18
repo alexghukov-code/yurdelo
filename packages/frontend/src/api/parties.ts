@@ -32,3 +32,7 @@ export async function updateParty(id: string, body: Partial<Party> & { updatedAt
   const { data } = await api.patch<{ data: Party }>(`/parties/${id}`, body);
   return data.data;
 }
+
+export async function deleteParty(id: string) {
+  await api.delete(`/parties/${id}`);
+}

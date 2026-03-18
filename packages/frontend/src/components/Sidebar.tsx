@@ -2,12 +2,13 @@ import { NavLink } from 'react-router-dom';
 import {
   Briefcase, Users, Calendar, BarChart3, Scale,
 } from 'lucide-react';
+import { can, type Permission } from '../lib/permissions';
 
-const NAV = [
-  { to: '/', label: 'Дела', icon: Briefcase, roles: ['admin', 'lawyer', 'viewer'] },
-  { to: '/parties', label: 'Контрагенты', icon: Users, roles: ['admin', 'lawyer', 'viewer'] },
-  { to: '/calendar', label: 'Календарь', icon: Calendar, roles: ['admin', 'lawyer', 'viewer'] },
-  { to: '/reports', label: 'Отчёты', icon: BarChart3, roles: ['admin', 'lawyer'] },
+const NAV: Array<{ to: string; label: string; icon: React.ElementType; allow: Permission }> = [
+  { to: '/', label: 'Дела', icon: Briefcase, allow: 'nav:cases' },
+  { to: '/parties', label: 'Контрагенты', icon: Users, allow: 'nav:parties' },
+  { to: '/calendar', label: 'Календарь', icon: Calendar, allow: 'nav:calendar' },
+  { to: '/reports', label: 'Отчёты', icon: BarChart3, allow: 'nav:reports' },
 ];
 
 interface SidebarProps {
@@ -25,7 +26,7 @@ export function Sidebar({ role }: SidebarProps) {
       </div>
 
       <nav className="flex-1 px-2 py-4 space-y-1">
-        {NAV.filter((n) => n.roles.includes(role)).map((n) => (
+        {NAV.filter((n) => can(role, n.allow)).map((n) => (
           <NavLink
             key={n.to}
             to={n.to}

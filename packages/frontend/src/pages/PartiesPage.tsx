@@ -25,7 +25,7 @@ export function PartiesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Контрагенты</h1>
-        <PermissionGate roles={['admin', 'lawyer']}>
+        <PermissionGate allow="party:create">
           <button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-1.5 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700"

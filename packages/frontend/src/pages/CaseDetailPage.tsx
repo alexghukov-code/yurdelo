@@ -7,6 +7,7 @@ import { QueryErrorView } from '../components/QueryErrorView';
 import { StaleDataModal } from '../components/StaleDataModal';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { PermissionGate } from '../components/PermissionGate';
+import { usePermission } from '../hooks/usePermission';
 
 export function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,8 +24,9 @@ export function CaseDetailPage() {
   if (!caseData) return null;
 
   const c = caseData;
+  const canEditRole = usePermission('case:edit');
   const isOwner = user?.role === 'lawyer' && c.lawyerId === user.id;
-  const canEdit = user?.role === 'admin' || isOwner;
+  const canEdit = canEditRole && (user?.role === 'admin' || isOwner);
 
   return (
     <div>
@@ -56,7 +58,7 @@ export function CaseDetailPage() {
               Закрыть дело
             </button>
           )}
-          <PermissionGate roles={['admin']}>
+          <PermissionGate allow="case:delete">
             <button
               onClick={() => {
                 if (confirm('Удалить дело?')) deleteCase.mutate(c.id, { onSuccess: () => navigate('/') });

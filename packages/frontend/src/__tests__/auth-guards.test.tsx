@@ -115,7 +115,7 @@ describe('ProtectedRoute', () => {
 describe('PermissionGate', () => {
   beforeEach(() => localStorage.clear());
 
-  it('renders children when role matches', async () => {
+  it('renders children when role matches (legacy roles prop)', async () => {
     mockUser('admin');
 
     renderWithProviders(
@@ -133,7 +133,7 @@ describe('PermissionGate', () => {
     });
   });
 
-  it('hides children when role does not match', async () => {
+  it('hides children when role does not match (legacy roles prop)', async () => {
     mockUser('viewer');
 
     renderWithProviders(
@@ -161,7 +161,7 @@ describe('PermissionGate', () => {
     renderWithProviders(
       <Routes>
         <Route path="/" element={
-          <PermissionGate roles={['admin']} fallback={<span>Read only</span>}>
+          <PermissionGate allow="case:delete" fallback={<span>Read only</span>}>
             <button>Delete</button>
           </PermissionGate>
         } />
@@ -172,5 +172,67 @@ describe('PermissionGate', () => {
       expect(screen.getByText('Read only')).toBeInTheDocument();
     });
     expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+  });
+
+  it('allow prop: admin can create case', async () => {
+    mockUser('admin');
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/" element={
+          <PermissionGate allow="case:create">
+            <button>+ Дело</button>
+          </PermissionGate>
+        } />
+      </Routes>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('+ Дело')).toBeInTheDocument();
+    });
+  });
+
+  it('allow prop: viewer cannot create case', async () => {
+    mockUser('viewer');
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/" element={
+          <div>
+            <span>Page</span>
+            <PermissionGate allow="case:create">
+              <button>+ Дело</button>
+            </PermissionGate>
+          </div>
+        } />
+      </Routes>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Page')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('+ Дело')).not.toBeInTheDocument();
+  });
+
+  it('allow prop: lawyer cannot delete case', async () => {
+    mockUser('lawyer');
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/" element={
+          <div>
+            <span>Page</span>
+            <PermissionGate allow="case:delete">
+              <button>Удалить</button>
+            </PermissionGate>
+          </div>
+        } />
+      </Routes>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Page')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Удалить')).not.toBeInTheDocument();
   });
 });

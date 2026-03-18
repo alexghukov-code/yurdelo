@@ -69,7 +69,15 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
       `INSERT INTO users (email, password_hash, role, first_name, last_name, middle_name, phone)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, email, role, status, first_name, last_name, middle_name, phone, created_at, updated_at`,
-      [body.email, hash, body.role, body.firstName, body.lastName, body.middleName ?? null, body.phone ?? null],
+      [
+        body.email,
+        hash,
+        body.role,
+        body.firstName,
+        body.lastName,
+        body.middleName ?? null,
+        body.phone ?? null,
+      ],
     );
 
     await writeAuditLog(db, {
@@ -183,16 +191,19 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
       await client.query('BEGIN');
 
       // 1. Get user
-      const { rows: [target] } = await client.query(
-        `SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL`,
-        [req.params.id],
-      );
+      const {
+        rows: [target],
+      } = await client.query(`SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL`, [
+        req.params.id,
+      ]);
       if (!target) throw AppError.notFound('Пользователь не найден.');
       if (target.status === 'inactive') throw AppError.conflict('Пользователь уже деактивирован.');
 
       // 2. Check not last admin
       if (target.role === 'admin') {
-        const { rows: [{ count }] } = await client.query(
+        const {
+          rows: [{ count }],
+        } = await client.query(
           `SELECT count(*)::int AS count FROM users
            WHERE role = 'admin' AND status = 'active' AND deleted_at IS NULL AND id != $1`,
           [req.params.id],
@@ -216,7 +227,9 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
         }
 
         // Verify transfer target
-        const { rows: [recipient] } = await client.query(
+        const {
+          rows: [recipient],
+        } = await client.query(
           `SELECT id FROM users WHERE id = $1 AND status = 'active' AND deleted_at IS NULL`,
           [body.transferToId],
         );
@@ -289,10 +302,11 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
       await client.query('BEGIN');
 
       // 1. Get user
-      const { rows: [target] } = await client.query(
-        `SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL`,
-        [req.params.id],
-      );
+      const {
+        rows: [target],
+      } = await client.query(`SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL`, [
+        req.params.id,
+      ]);
       if (!target) throw AppError.notFound('Пользователь не найден.');
       if (target.status === 'active') throw AppError.conflict('Пользователь уже активен.');
 
@@ -359,9 +373,7 @@ export function usersRouter(deps: { db: Pool; redis: Redis }) {
         event: r.event,
         eventDate: r.event_date,
         comment: r.comment,
-        performedBy: r.performed_by_first
-          ? `${r.performed_by_last} ${r.performed_by_first}`
-          : null,
+        performedBy: r.performed_by_first ? `${r.performed_by_last} ${r.performed_by_first}` : null,
         createdAt: r.created_at,
       })),
     });

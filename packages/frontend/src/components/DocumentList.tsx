@@ -76,7 +76,10 @@ export function DocumentList({ hearingId, caseId, documents, canEdit }: Document
       {documents.length > 0 && (
         <div className="space-y-1">
           {documents.map((d) => (
-            <div key={d.id} className="flex items-center justify-between text-xs bg-gray-50 rounded px-2 py-1.5">
+            <div
+              key={d.id}
+              className="flex items-center justify-between text-xs bg-gray-50 rounded px-2 py-1.5"
+            >
               <div className="flex items-center gap-1.5 min-w-0">
                 <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                 <span className="truncate text-gray-700">{d.fileName}</span>
@@ -92,7 +95,9 @@ export function DocumentList({ hearingId, caseId, documents, canEdit }: Document
                 </button>
                 {canDelete && canEdit && (user?.role === 'admin' || d.uploadedBy === user?.id) && (
                   <button
-                    onClick={() => { if (confirm('Удалить файл?')) deleteMut.mutate(d.id); }}
+                    onClick={() => {
+                      if (confirm('Удалить файл?')) deleteMut.mutate(d.id);
+                    }}
                     className="p-1 text-red-400 hover:text-red-600"
                     title="Удалить"
                   >
@@ -111,7 +116,10 @@ export function DocumentList({ hearingId, caseId, documents, canEdit }: Document
           {progress !== null ? (
             <div className="flex items-center gap-2">
               <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
               <span className="text-xs text-gray-500">{progress}%</span>
             </div>

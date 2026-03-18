@@ -1,7 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useCaseDetail, useUpdateCase, useUpdateCaseStatus, useSetFinalResult, useDeleteCase } from '../hooks/useCases';
+import {
+  useCaseDetail,
+  useUpdateCase,
+  useUpdateCaseStatus,
+  useSetFinalResult,
+  useDeleteCase,
+} from '../hooks/useCases';
 import { useAuth } from '../hooks/useAuth';
 import { isStaleDataError } from '../api/client';
 import { PageSkeleton } from '../components/PageSkeleton';
@@ -14,7 +20,7 @@ import { HearingFormModal } from '../components/HearingFormModal';
 import { TransferModal } from '../components/TransferModal';
 import { DocumentList } from '../components/DocumentList';
 import type { Stage, Hearing } from '../api/cases';
-import { fetchTransfers, type Transfer } from '../api/transfers';
+import { fetchTransfers } from '../api/transfers';
 import { PermissionGate } from '../components/PermissionGate';
 import { usePermission } from '../hooks/usePermission';
 import { StatusMenu } from '../components/StatusMenu';
@@ -31,8 +37,14 @@ export function CaseDetailPage() {
   const deleteCase = useDeleteCase();
   const [editing, setEditing] = useState(false);
   const [staleOpen, setStaleOpen] = useState(false);
-  const [stageModal, setStageModal] = useState<{ mode: 'create' | 'edit'; stage?: Stage } | null>(null);
-  const [hearingModal, setHearingModal] = useState<{ mode: 'create' | 'edit'; stageId: string; hearing?: Hearing } | null>(null);
+  const [stageModal, setStageModal] = useState<{ mode: 'create' | 'edit'; stage?: Stage } | null>(
+    null,
+  );
+  const [hearingModal, setHearingModal] = useState<{
+    mode: 'create' | 'edit';
+    stageId: string;
+    hearing?: Hearing;
+  } | null>(null);
   const [resultSuggestion, setResultSuggestion] = useState<string | null>(null);
   const [showTransfer, setShowTransfer] = useState(false);
 
@@ -85,7 +97,10 @@ export function CaseDetailPage() {
     <div>
       <StaleDataModal open={staleOpen} onRefresh={handleStaleRefresh} />
 
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+      >
         <ArrowLeft className="h-4 w-4" /> Назад
       </button>
 
@@ -128,7 +143,11 @@ export function CaseDetailPage() {
                   onChangeStatus={(newStatus) =>
                     updateStatus.mutate(
                       { id: c.id, status: newStatus, updatedAt: c.updatedAt },
-                      { onError: (err) => { if (isStaleDataError(err)) setStaleOpen(true); } },
+                      {
+                        onError: (err) => {
+                          if (isStaleDataError(err)) setStaleOpen(true);
+                        },
+                      },
                     )
                   }
                 />
@@ -136,7 +155,8 @@ export function CaseDetailPage() {
               <PermissionGate allow="case:delete">
                 <button
                   onClick={() => {
-                    if (confirm('Удалить дело?')) deleteCase.mutate(c.id, { onSuccess: () => navigate('/') });
+                    if (confirm('Удалить дело?'))
+                      deleteCase.mutate(c.id, { onSuccess: () => navigate('/') });
                   }}
                   className="p-1.5 text-red-500 hover:text-red-700"
                 >
@@ -158,16 +178,25 @@ export function CaseDetailPage() {
                     onSetResult={(result) =>
                       setResult.mutate(
                         { id: c.id, finalResult: result, updatedAt: c.updatedAt },
-                        { onError: (err) => { if (isStaleDataError(err)) setStaleOpen(true); } },
+                        {
+                          onError: (err) => {
+                            if (isStaleDataError(err)) setStaleOpen(true);
+                          },
+                        },
                       )
                     }
                   />
                 ) : (
-                  <p className="text-sm font-medium text-gray-900">{resultLabel(c.finalResult) ?? '—'}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {resultLabel(c.finalResult) ?? '—'}
+                  </p>
                 )}
               </div>
             </div>
-            <InfoCard label="Цена иска" value={c.claimAmount ? `${c.claimAmount.toLocaleString('ru')} ₽` : '—'} />
+            <InfoCard
+              label="Цена иска"
+              value={c.claimAmount ? `${c.claimAmount.toLocaleString('ru')} ₽` : '—'}
+            />
             <InfoCard label="Создано" value={new Date(c.createdAt).toLocaleDateString('ru')} />
           </div>
 
@@ -184,7 +213,7 @@ export function CaseDetailPage() {
               </button>
             )}
           </div>
-          {(!c.stages || c.stages.length === 0) ? (
+          {!c.stages || c.stages.length === 0 ? (
             <p className="text-sm text-gray-400">Стадий пока нет.</p>
           ) : (
             <div className="space-y-4">
@@ -193,7 +222,9 @@ export function CaseDetailPage() {
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium text-gray-900">{s.stageTypeName}</h3>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">{s.court} &middot; {s.caseNumber}</span>
+                      <span className="text-xs text-gray-500">
+                        {s.court} &middot; {s.caseNumber}
+                      </span>
                       {canEdit && (
                         <button
                           onClick={() => setStageModal({ mode: 'edit', stage: s })}
@@ -215,7 +246,11 @@ export function CaseDetailPage() {
                               <span className="font-medium">{hearingTypeLabel(h.type)}</span>
                               <span className="text-gray-500 ml-2">
                                 {new Date(h.datetime).toLocaleString('ru', {
-                                  day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
                                 })}
                               </span>
                             </div>
@@ -227,7 +262,9 @@ export function CaseDetailPage() {
                               )}
                               {canEdit && (
                                 <button
-                                  onClick={() => setHearingModal({ mode: 'edit', stageId: s.id, hearing: h })}
+                                  onClick={() =>
+                                    setHearingModal({ mode: 'edit', stageId: s.id, hearing: h })
+                                  }
                                   className="p-1 text-gray-400 hover:text-gray-600"
                                 >
                                   <Pencil className="h-3 w-3" />
@@ -268,7 +305,11 @@ export function CaseDetailPage() {
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={() => {
-                    setResult.mutate({ id: c.id, finalResult: resultSuggestion, updatedAt: c.updatedAt });
+                    setResult.mutate({
+                      id: c.id,
+                      finalResult: resultSuggestion,
+                      updatedAt: c.updatedAt,
+                    });
                     setResultSuggestion(null);
                   }}
                   className="px-3 py-1 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700"
@@ -292,7 +333,10 @@ export function CaseDetailPage() {
               existingStages={c.stages ?? []}
               initialData={stageModal.stage}
               onClose={() => setStageModal(null)}
-              onStale={() => { setStageModal(null); setStaleOpen(true); }}
+              onStale={() => {
+                setStageModal(null);
+                setStaleOpen(true);
+              }}
             />
           )}
 
@@ -303,7 +347,10 @@ export function CaseDetailPage() {
               caseId={c.id}
               initialData={hearingModal.hearing}
               onClose={() => setHearingModal(null)}
-              onStale={() => { setHearingModal(null); setStaleOpen(true); }}
+              onStale={() => {
+                setHearingModal(null);
+                setStaleOpen(true);
+              }}
               onResultCreated={(result) => setResultSuggestion(result)}
             />
           )}
@@ -325,7 +372,10 @@ export function CaseDetailPage() {
           ) : (
             <div className="space-y-3">
               {transfers.map((t) => (
-                <div key={t.id} className="flex items-start gap-3 text-sm border-l-2 border-gray-200 pl-4">
+                <div
+                  key={t.id}
+                  className="flex items-start gap-3 text-sm border-l-2 border-gray-200 pl-4"
+                >
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
                       {t.fromName} → {t.toName}
@@ -346,7 +396,10 @@ export function CaseDetailPage() {
               caseName={c.name}
               currentLawyerId={c.lawyerId}
               currentLawyerName={c.lawyerName ?? ''}
-              onClose={() => { setShowTransfer(false); refetch(); }}
+              onClose={() => {
+                setShowTransfer(false);
+                refetch();
+              }}
             />
           )}
         </>
@@ -365,17 +418,31 @@ function InfoCard({ label, value }: { label: string; value: string }) {
 }
 
 function statusLabel(s: string) {
-  const m: Record<string, string> = { active: 'Активно', closed: 'Закрыто', suspended: 'Приостановлено' };
+  const m: Record<string, string> = {
+    active: 'Активно',
+    closed: 'Закрыто',
+    suspended: 'Приостановлено',
+  };
   return m[s] ?? s;
 }
 
 function resultLabel(r: string | null) {
   if (!r) return '—';
-  const m: Record<string, string> = { win: 'Победа', lose: 'Проигрыш', part: 'Частично', world: 'Мировое' };
+  const m: Record<string, string> = {
+    win: 'Победа',
+    lose: 'Проигрыш',
+    part: 'Частично',
+    world: 'Мировое',
+  };
   return m[r] ?? r;
 }
 
 function hearingTypeLabel(t: string) {
-  const m: Record<string, string> = { hearing: 'Заседание', adj: 'Перенос', result: 'Результат', note: 'Заметка' };
+  const m: Record<string, string> = {
+    hearing: 'Заседание',
+    adj: 'Перенос',
+    result: 'Результат',
+    note: 'Заметка',
+  };
   return m[t] ?? t;
 }

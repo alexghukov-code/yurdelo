@@ -6,12 +6,22 @@ import QRCode from 'qrcode';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError } from '../utils/errors.js';
 import { comparePassword, hashPassword } from '../utils/password.js';
-import { signAccessToken, signRefreshToken, verifyToken, type RefreshPayload } from '../utils/jwt.js';
-import { validate, loginSchema, changePasswordSchema, verify2faSchema } from '../utils/validation.js';
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyToken,
+  type RefreshPayload,
+} from '../utils/jwt.js';
+import {
+  validate,
+  loginSchema,
+  changePasswordSchema,
+  verify2faSchema,
+} from '../utils/validation.js';
 import '../types.js';
 
 const REFRESH_TTL = 7 * 24 * 3600; // 7 days in seconds
-const LOCK_TTL = 15 * 60;          // 15 min
+const LOCK_TTL = 15 * 60; // 15 min
 const MAX_ATTEMPTS = 5;
 
 export function authRouter(deps: { db: Pool; redis: Redis }) {

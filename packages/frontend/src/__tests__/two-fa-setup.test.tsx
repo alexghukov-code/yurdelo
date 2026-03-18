@@ -11,7 +11,14 @@ function loginAs(id: string, role: string, twoFaEnabled: boolean) {
   server.use(
     http.get('/api/v1/auth/me', () =>
       HttpResponse.json({
-        data: { id, email: `${role}@test.ru`, role, firstName: 'Тест', lastName: 'Тестов', twoFaEnabled },
+        data: {
+          id,
+          email: `${role}@test.ru`,
+          role,
+          firstName: 'Тест',
+          lastName: 'Тестов',
+          twoFaEnabled,
+        },
       }),
     ),
     http.get('/api/v1/notifications', () =>
@@ -20,15 +27,19 @@ function loginAs(id: string, role: string, twoFaEnabled: boolean) {
     http.get(`/api/v1/users/${id}`, () =>
       HttpResponse.json({
         data: {
-          id, email: `${role}@test.ru`, role, status: 'active',
-          firstName: 'Тест', lastName: 'Тестов', twoFaEnabled,
-          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          id,
+          email: `${role}@test.ru`,
+          role,
+          status: 'active',
+          firstName: 'Тест',
+          lastName: 'Тестов',
+          twoFaEnabled,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
       }),
     ),
-    http.get(`/api/v1/users/${id}/history`, () =>
-      HttpResponse.json({ data: [] }),
-    ),
+    http.get(`/api/v1/users/${id}/history`, () => HttpResponse.json({ data: [] })),
   );
 }
 
@@ -39,7 +50,9 @@ describe('2FA setup', () => {
     loginAs('u1', 'lawyer', false);
 
     renderWithProviders(
-      <Routes><Route path="/users/:id" element={<UserProfilePage />} /></Routes>,
+      <Routes>
+        <Route path="/users/:id" element={<UserProfilePage />} />
+      </Routes>,
       { route: '/users/u1' },
     );
 
@@ -54,7 +67,9 @@ describe('2FA setup', () => {
     loginAs('u1', 'lawyer', true);
 
     renderWithProviders(
-      <Routes><Route path="/users/:id" element={<UserProfilePage />} /></Routes>,
+      <Routes>
+        <Route path="/users/:id" element={<UserProfilePage />} />
+      </Routes>,
       { route: '/users/u1' },
     );
 
@@ -69,7 +84,9 @@ describe('2FA setup', () => {
     loginAs('u1', 'admin', false);
 
     renderWithProviders(
-      <Routes><Route path="/users/:id" element={<UserProfilePage />} /></Routes>,
+      <Routes>
+        <Route path="/users/:id" element={<UserProfilePage />} />
+      </Routes>,
       { route: '/users/u1' },
     );
 
@@ -82,12 +99,16 @@ describe('2FA setup', () => {
     loginAs('u1', 'lawyer', false);
     server.use(
       http.post('/api/v1/auth/2fa/setup', () =>
-        HttpResponse.json({ data: { qrCodeUrl: 'data:image/png;base64,QRFAKE', secret: 'JBSWY3DPEHPK3PXP' } }),
+        HttpResponse.json({
+          data: { qrCodeUrl: 'data:image/png;base64,QRFAKE', secret: 'JBSWY3DPEHPK3PXP' },
+        }),
       ),
     );
 
     renderWithProviders(
-      <Routes><Route path="/users/:id" element={<UserProfilePage />} /></Routes>,
+      <Routes>
+        <Route path="/users/:id" element={<UserProfilePage />} />
+      </Routes>,
       { route: '/users/u1' },
     );
 
@@ -114,7 +135,9 @@ describe('2FA setup', () => {
     );
 
     renderWithProviders(
-      <Routes><Route path="/users/:id" element={<UserProfilePage />} /></Routes>,
+      <Routes>
+        <Route path="/users/:id" element={<UserProfilePage />} />
+      </Routes>,
       { route: '/users/u1' },
     );
 
@@ -136,7 +159,9 @@ describe('2FA setup', () => {
     );
 
     renderWithProviders(
-      <Routes><Route path="/users/:id" element={<UserProfilePage />} /></Routes>,
+      <Routes>
+        <Route path="/users/:id" element={<UserProfilePage />} />
+      </Routes>,
       { route: '/users/u1' },
     );
 
@@ -158,9 +183,15 @@ describe('2FA setup', () => {
       http.get('/api/v1/users/u-other', () =>
         HttpResponse.json({
           data: {
-            id: 'u-other', email: 'other@test.ru', role: 'lawyer', status: 'active',
-            firstName: 'Другой', lastName: 'Юзер', twoFaEnabled: false,
-            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+            id: 'u-other',
+            email: 'other@test.ru',
+            role: 'lawyer',
+            status: 'active',
+            firstName: 'Другой',
+            lastName: 'Юзер',
+            twoFaEnabled: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           },
         }),
       ),
@@ -168,7 +199,9 @@ describe('2FA setup', () => {
     );
 
     renderWithProviders(
-      <Routes><Route path="/users/:id" element={<UserProfilePage />} /></Routes>,
+      <Routes>
+        <Route path="/users/:id" element={<UserProfilePage />} />
+      </Routes>,
       { route: '/users/u-other' },
     );
 

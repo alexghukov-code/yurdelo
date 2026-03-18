@@ -1,6 +1,12 @@
 import { createContext, useContext } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { login as apiLogin, logout as apiLogout, fetchMe, type User, type LoginPayload } from '../api/auth';
+import {
+  login as apiLogin,
+  logout as apiLogout,
+  fetchMe,
+  type User,
+  type LoginPayload,
+} from '../api/auth';
 
 interface AuthContextValue {
   user: User | null;

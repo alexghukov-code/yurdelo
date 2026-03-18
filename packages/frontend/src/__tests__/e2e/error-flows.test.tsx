@@ -95,7 +95,10 @@ describe('404 flows', () => {
   it('case detail returns 404 → shows not found message', async () => {
     server.use(
       http.get('/api/v1/cases/:id', () =>
-        HttpResponse.json({ error: { code: 'NOT_FOUND', message: 'Не найдено.' } }, { status: 404 }),
+        HttpResponse.json(
+          { error: { code: 'NOT_FOUND', message: 'Не найдено.' } },
+          { status: 404 },
+        ),
       ),
     );
 
@@ -129,7 +132,10 @@ describe('500 flows', () => {
   it('cases list returns 500 → shows error with retry', async () => {
     server.use(
       http.get('/api/v1/cases', () =>
-        HttpResponse.json({ error: { code: 'INTERNAL_ERROR', message: 'Ошибка.' } }, { status: 500 }),
+        HttpResponse.json(
+          { error: { code: 'INTERNAL_ERROR', message: 'Ошибка.' } },
+          { status: 500 },
+        ),
       ),
     );
 
@@ -153,7 +159,10 @@ describe('500 flows', () => {
   it('dashboard returns 500 → shows error with retry', async () => {
     server.use(
       http.get('/api/v1/cases', () =>
-        HttpResponse.json({ error: { code: 'INTERNAL_ERROR', message: 'Ошибка.' } }, { status: 500 }),
+        HttpResponse.json(
+          { error: { code: 'INTERNAL_ERROR', message: 'Ошибка.' } },
+          { status: 500 },
+        ),
       ),
     );
 

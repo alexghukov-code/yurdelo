@@ -13,17 +13,23 @@ export const STAGE_TYPES: StageType[] = [
   { id: 'a0000000-0000-0000-0000-000000000004', name: 'Кассация', sortOrder: 4 },
 ];
 
-export async function createStage(caseId: string, body: {
-  stageTypeId: string;
-  sortOrder: number;
-  court: string;
-  caseNumber: string;
-}) {
+export async function createStage(
+  caseId: string,
+  body: {
+    stageTypeId: string;
+    sortOrder: number;
+    court: string;
+    caseNumber: string;
+  },
+) {
   const { data } = await api.post(`/cases/${caseId}/stages`, body);
   return data.data;
 }
 
-export async function updateStage(id: string, body: Record<string, unknown> & { updatedAt: string }) {
+export async function updateStage(
+  id: string,
+  body: Record<string, unknown> & { updatedAt: string },
+) {
   const { data } = await api.patch(`/stages/${id}`, body);
   return data.data;
 }

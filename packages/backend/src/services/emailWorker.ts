@@ -46,13 +46,7 @@ export function createEmailWorker(
         await db.query(
           `INSERT INTO failed_notifications (user_id, trigger_type, payload, attempts, last_error)
            VALUES ($1, $2, $3, $4, $5)`,
-          [
-            job.data.userId,
-            'email',
-            JSON.stringify(job.data),
-            job.attemptsMade,
-            err.message,
-          ],
+          [job.data.userId, 'email', JSON.stringify(job.data), job.attemptsMade, err.message],
         );
       } catch (dbErr) {
         console.error('Failed to record failed_notification:', dbErr);

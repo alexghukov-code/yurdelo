@@ -34,7 +34,9 @@ export function notificationsRouter(deps: { db: Pool; redis: Redis }) {
       [...params, limit],
     );
 
-    const { rows: [{ count }] } = await db.query(
+    const {
+      rows: [{ count }],
+    } = await db.query(
       `SELECT count(*)::int AS count FROM notifications n
        WHERE n.user_id = $1 AND n.is_read = false`,
       [req.user!.id],

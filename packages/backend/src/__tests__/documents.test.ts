@@ -2,7 +2,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import path from 'node:path';
 import type { Express } from 'express';
-import { buildTestApp, createMockPool, createMockRedis, USERS, CASES, STAGES, HEARINGS, authHeader } from './helpers.js';
+import {
+  buildTestApp,
+  createMockPool,
+  createMockRedis,
+  USERS,
+  CASES,
+  STAGES,
+  HEARINGS,
+  authHeader,
+} from './helpers.js';
 import { createApp } from '../app.js';
 import type { S3Service } from '../services/s3Service.js';
 
@@ -24,7 +33,11 @@ const DOC_ROW = {
   created_at: NOW,
 };
 
-function createMockS3(): S3Service & { upload: ReturnType<typeof vi.fn>; getSignedDownloadUrl: ReturnType<typeof vi.fn>; tagAsDeleted: ReturnType<typeof vi.fn> } {
+function createMockS3(): S3Service & {
+  upload: ReturnType<typeof vi.fn>;
+  getSignedDownloadUrl: ReturnType<typeof vi.fn>;
+  tagAsDeleted: ReturnType<typeof vi.fn>;
+} {
   return {
     upload: vi.fn().mockResolvedValue({ s3Key: 'documents/2026/test-uuid/file.pdf', size: 100 }),
     getSignedDownloadUrl: vi.fn().mockResolvedValue({
@@ -54,13 +67,17 @@ beforeEach(() => {
 // ═══════════════════════════════════════════════════════
 
 describe('POST /v1/hearings/:hearingId/documents', () => {
-  const hearingCtx = { hearing_id: HEARINGS.scheduled.id, case_id: CASES.active.id, lawyer_id: USERS.lawyer.id };
+  const hearingCtx = {
+    hearing_id: HEARINGS.scheduled.id,
+    case_id: CASES.active.id,
+    lawyer_id: USERS.lawyer.id,
+  };
 
   it('uploads file and returns 201', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [hearingCtx], rowCount: 1 })  // ownership
-      .mockResolvedValueOnce({ rows: [DOC_ROW], rowCount: 1 })     // INSERT
-      .mockResolvedValueOnce({ rows: [] });                        // audit_log
+      .mockResolvedValueOnce({ rows: [hearingCtx], rowCount: 1 }) // ownership
+      .mockResolvedValueOnce({ rows: [DOC_ROW], rowCount: 1 }) // INSERT
+      .mockResolvedValueOnce({ rows: [] }); // audit_log
 
     const res = await request(app)
       .post(`/v1/hearings/${HEARINGS.scheduled.id}/documents`)
@@ -166,10 +183,11 @@ describe('POST /v1/hearings/:hearingId/documents', () => {
       .set('Content-Type', 'multipart/form-data; boundary=----boundary')
       .send(
         '------boundary\r\n' +
-        'Content-Disposition: form-data; name="file"; filename="huge.pdf"\r\n' +
-        'Content-Type: application/pdf\r\n\r\n' +
-        'x'.repeat(1024) + '\r\n' +
-        '------boundary--\r\n',
+          'Content-Disposition: form-data; name="file"; filename="huge.pdf"\r\n' +
+          'Content-Type: application/pdf\r\n\r\n' +
+          'x'.repeat(1024) +
+          '\r\n' +
+          '------boundary--\r\n',
       );
 
     // multer accepts this small payload — but let's verify the limit constant
@@ -289,9 +307,9 @@ describe('GET /v1/documents/:id/url', () => {
 describe('DELETE /v1/documents/:id', () => {
   it('admin deletes any document', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [DOC_ROW], rowCount: 1 })  // SELECT
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })         // UPDATE deleted_at
-      .mockResolvedValueOnce({ rows: [] });                     // audit_log
+      .mockResolvedValueOnce({ rows: [DOC_ROW], rowCount: 1 }) // SELECT
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // UPDATE deleted_at
+      .mockResolvedValueOnce({ rows: [] }); // audit_log
 
     const res = await request(app)
       .delete('/v1/documents/doc-001')
@@ -431,18 +449,28 @@ describe('DELETE /v1/documents/:id', () => {
 describe('S3 upload integration', () => {
   it('calls s3.upload() with file buffer, name, and mime type', async () => {
     const { app: s3App, pool: s3Pool, s3 } = buildTestAppWithS3();
-    const hearingCtx = { hearing_id: HEARINGS.scheduled.id, case_id: CASES.active.id, lawyer_id: USERS.lawyer.id };
+    const hearingCtx = {
+      hearing_id: HEARINGS.scheduled.id,
+      case_id: CASES.active.id,
+      lawyer_id: USERS.lawyer.id,
+    };
 
     s3Pool.query
       .mockResolvedValueOnce({ rows: [hearingCtx], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [{ ...DOC_ROW, s3_key: 'documents/2026/test-uuid/file.pdf' }], rowCount: 1 })
+      .mockResolvedValueOnce({
+        rows: [{ ...DOC_ROW, s3_key: 'documents/2026/test-uuid/file.pdf' }],
+        rowCount: 1,
+      })
       .mockResolvedValueOnce({ rows: [] }); // audit
 
     const fileContent = 'PDF binary content here';
     const res = await request(s3App)
       .post(`/v1/hearings/${HEARINGS.scheduled.id}/documents`)
       .set('Authorization', authHeader(USERS.lawyer))
-      .attach('file', Buffer.from(fileContent), { filename: 'test.pdf', contentType: 'application/pdf' });
+      .attach('file', Buffer.from(fileContent), {
+        filename: 'test.pdf',
+        contentType: 'application/pdf',
+      });
 
     expect(res.status).toBe(201);
     expect(s3.upload).toHaveBeenCalledTimes(1);
@@ -456,18 +484,28 @@ describe('S3 upload integration', () => {
 
   it('stores S3 key from upload result in DB', async () => {
     const { app: s3App, pool: s3Pool, s3 } = buildTestAppWithS3();
-    const hearingCtx = { hearing_id: HEARINGS.scheduled.id, case_id: CASES.active.id, lawyer_id: USERS.admin.id };
+    const hearingCtx = {
+      hearing_id: HEARINGS.scheduled.id,
+      case_id: CASES.active.id,
+      lawyer_id: USERS.admin.id,
+    };
     s3.upload.mockResolvedValue({ s3Key: 'documents/2026/unique-uuid/report.pdf', size: 500 });
 
     s3Pool.query
       .mockResolvedValueOnce({ rows: [hearingCtx], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [{ ...DOC_ROW, s3_key: 'documents/2026/unique-uuid/report.pdf' }], rowCount: 1 })
+      .mockResolvedValueOnce({
+        rows: [{ ...DOC_ROW, s3_key: 'documents/2026/unique-uuid/report.pdf' }],
+        rowCount: 1,
+      })
       .mockResolvedValueOnce({ rows: [] });
 
     await request(s3App)
       .post(`/v1/hearings/${HEARINGS.scheduled.id}/documents`)
       .set('Authorization', authHeader(USERS.admin))
-      .attach('file', Buffer.from('data'), { filename: 'report.pdf', contentType: 'application/pdf' });
+      .attach('file', Buffer.from('data'), {
+        filename: 'report.pdf',
+        contentType: 'application/pdf',
+      });
 
     // Verify INSERT used the s3Key from upload result
     const insertCall = s3Pool.query.mock.calls[1];
@@ -478,7 +516,11 @@ describe('S3 upload integration', () => {
     const { app: s3App, pool: s3Pool, s3 } = buildTestAppWithS3();
     s3.upload.mockRejectedValue(new Error('S3 unavailable'));
 
-    const hearingCtx = { hearing_id: HEARINGS.scheduled.id, case_id: CASES.active.id, lawyer_id: USERS.admin.id };
+    const hearingCtx = {
+      hearing_id: HEARINGS.scheduled.id,
+      case_id: CASES.active.id,
+      lawyer_id: USERS.admin.id,
+    };
     s3Pool.query.mockResolvedValueOnce({ rows: [hearingCtx], rowCount: 1 });
 
     const res = await request(s3App)
@@ -528,7 +570,10 @@ describe('Signed URL expiry and access control', () => {
     const { app: s3App, pool: s3Pool, s3 } = buildTestAppWithS3();
     const now = Date.now();
     const expectedExpiry = new Date(now + 3600_000).toISOString();
-    s3.getSignedDownloadUrl.mockResolvedValue({ url: 'https://s3/signed', expiresAt: expectedExpiry });
+    s3.getSignedDownloadUrl.mockResolvedValue({
+      url: 'https://s3/signed',
+      expiresAt: expectedExpiry,
+    });
     s3Pool.query.mockResolvedValueOnce({ rows: [DOC_ROW], rowCount: 1 });
 
     const res = await request(s3App)
@@ -644,7 +689,8 @@ describe('S3 retry logic', () => {
     const { createS3Service } = await import('../services/s3Service.js');
 
     const mockS3 = {
-      send: vi.fn()
+      send: vi
+        .fn()
         .mockRejectedValueOnce(new Error('network error 1'))
         .mockRejectedValueOnce(new Error('network error 2'))
         .mockRejectedValueOnce(new Error('network error 3')),
@@ -652,9 +698,7 @@ describe('S3 retry logic', () => {
 
     const service = createS3Service(mockS3);
 
-    await expect(
-      service.tagAsDeleted('some/key'),
-    ).rejects.toThrow('network error 3');
+    await expect(service.tagAsDeleted('some/key')).rejects.toThrow('network error 3');
 
     expect(mockS3.send).toHaveBeenCalledTimes(3);
   });
@@ -663,9 +707,7 @@ describe('S3 retry logic', () => {
     const { createS3Service } = await import('../services/s3Service.js');
 
     const mockS3 = {
-      send: vi.fn()
-        .mockRejectedValueOnce(new Error('transient'))
-        .mockResolvedValueOnce({}),
+      send: vi.fn().mockRejectedValueOnce(new Error('transient')).mockResolvedValueOnce({}),
     } as any;
 
     const service = createS3Service(mockS3);

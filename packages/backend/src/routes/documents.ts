@@ -27,11 +27,7 @@ const upload = multer({
   limits: { fileSize: MAX_FILE_SIZE },
 });
 
-export function documentsRouter(deps: {
-  db: Pool;
-  redis: Redis;
-  s3?: S3Service;
-}) {
+export function documentsRouter(deps: { db: Pool; redis: Redis; s3?: S3Service }) {
   const { db, s3 } = deps;
   const router = Router();
 
@@ -55,7 +51,9 @@ export function documentsRouter(deps: {
       }
 
       // Verify hearing → stage → case ownership
-      const { rows: [ctx] } = await db.query(
+      const {
+        rows: [ctx],
+      } = await db.query(
         `SELECT h.id AS hearing_id, s.case_id, c.lawyer_id
          FROM hearings h
          JOIN stages s ON s.id = h.stage_id
@@ -85,9 +83,13 @@ export function documentsRouter(deps: {
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
         [
-          req.params.hearingId, ctx.case_id,
-          file.originalname, file.size, file.mimetype,
-          s3Key, req.user!.id,
+          req.params.hearingId,
+          ctx.case_id,
+          file.originalname,
+          file.size,
+          file.mimetype,
+          s3Key,
+          req.user!.id,
         ],
       );
 
@@ -109,7 +111,9 @@ export function documentsRouter(deps: {
   // Returns signed URL valid for 1 hour.
   // Viewer: allowed if case is visible (all cases for viewer).
   router.get('/documents/:id/url', requireAuth, async (req, res) => {
-    const { rows: [doc] } = await db.query(
+    const {
+      rows: [doc],
+    } = await db.query(
       `SELECT d.id, d.s3_key, d.file_name, d.case_id, c.lawyer_id
        FROM documents d
        JOIN cases c ON c.id = d.case_id
@@ -148,7 +152,9 @@ export function documentsRouter(deps: {
       throw AppError.forbidden('Наблюдатель не может удалять документы.');
     }
 
-    const { rows: [doc] } = await db.query(
+    const {
+      rows: [doc],
+    } = await db.query(
       `SELECT d.id, d.s3_key, d.uploaded_by, d.file_name, d.case_id, c.lawyer_id
        FROM documents d
        JOIN cases c ON c.id = d.case_id
@@ -168,10 +174,7 @@ export function documentsRouter(deps: {
     }
 
     // Soft delete in DB
-    await db.query(
-      `UPDATE documents SET deleted_at = NOW() WHERE id = $1`,
-      [req.params.id],
-    );
+    await db.query(`UPDATE documents SET deleted_at = NOW() WHERE id = $1`, [req.params.id]);
 
     // Tag in S3 (fire-and-forget — failure logged, retry via cron)
     if (s3) {

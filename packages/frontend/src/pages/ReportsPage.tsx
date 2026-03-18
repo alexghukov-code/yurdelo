@@ -57,11 +57,19 @@ export function ReportsPage() {
       {showPeriod && (
         <div className="flex gap-3 mb-4 items-center">
           <label className="text-sm text-gray-500">Период:</label>
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm" />
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+          />
           <span className="text-gray-400">—</span>
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm" />
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+          />
         </div>
       )}
 
@@ -113,15 +121,23 @@ function MyReportTab() {
           <BarRow label="Проигрыши" count={losses} max={maxBar} color="bg-red-400" />
           <BarRow label="Частично" count={partial} max={maxBar} color="bg-yellow-400" />
         </div>
-        <p className="text-xs text-gray-400 mt-4">
-          Всего решённых: {results?.decided ?? 0}
-        </p>
+        <p className="text-xs text-gray-400 mt-4">Всего решённых: {results?.decided ?? 0}</p>
       </div>
     </div>
   );
 }
 
-function BarRow({ label, count, max, color }: { label: string; count: number; max: number; color: string }) {
+function BarRow({
+  label,
+  count,
+  max,
+  color,
+}: {
+  label: string;
+  count: number;
+  max: number;
+  color: string;
+}) {
   const pct = max > 0 ? (count / max) * 100 : 0;
   return (
     <div className="flex items-center gap-3">
@@ -144,7 +160,8 @@ function LoadTab() {
 
   if (isLoading) return <PageSkeleton variant="table" />;
   if (isError) return <QueryErrorView error={error} onRetry={refetch} />;
-  if (!data?.length) return <EmptyState title="Недостаточно данных" description="Нет активных адвокатов." />;
+  if (!data?.length)
+    return <EmptyState title="Недостаточно данных" description="Нет активных адвокатов." />;
 
   return (
     <Table>
@@ -152,7 +169,9 @@ function LoadTab() {
       <tbody className="divide-y">
         {data.map((r: any) => (
           <tr key={r.id} className="hover:bg-gray-50">
-            <Td>{r.lastName} {r.firstName}</Td>
+            <Td>
+              {r.lastName} {r.firstName}
+            </Td>
             <Td>{r.activeCases}</Td>
             <Td>{r.closedCases}</Td>
             <Td bold>{r.totalCases}</Td>
@@ -173,7 +192,8 @@ function ResultsTab() {
 
   if (isLoading) return <PageSkeleton variant="table" />;
   if (isError) return <QueryErrorView error={error} onRetry={refetch} />;
-  if (!data?.length) return <EmptyState title="Недостаточно данных" description="Нет данных по результатам." />;
+  if (!data?.length)
+    return <EmptyState title="Недостаточно данных" description="Нет данных по результатам." />;
 
   return (
     <Table>
@@ -181,7 +201,9 @@ function ResultsTab() {
       <tbody className="divide-y">
         {data.map((r: any) => (
           <tr key={r.id} className="hover:bg-gray-50">
-            <Td>{r.lastName} {r.firstName}</Td>
+            <Td>
+              {r.lastName} {r.firstName}
+            </Td>
             <Td>{r.wins}</Td>
             <Td>{r.losses}</Td>
             <Td>{r.partial}</Td>
@@ -204,7 +226,13 @@ function StaleTab() {
 
   if (isLoading) return <PageSkeleton variant="table" />;
   if (isError) return <QueryErrorView error={error} onRetry={refetch} />;
-  if (!data?.length) return <EmptyState title="Нет застоявшихся дел" description="Все дела имеют заседания за последние 30 дней." />;
+  if (!data?.length)
+    return (
+      <EmptyState
+        title="Нет застоявшихся дел"
+        description="Все дела имеют заседания за последние 30 дней."
+      />
+    );
 
   return (
     <Table>
@@ -219,9 +247,11 @@ function StaleTab() {
             </td>
             <Td>{r.lawyerName}</Td>
             <Td>{r.lastHearing ? new Date(r.lastHearing).toLocaleDateString('ru') : 'Нет'}</Td>
-            <td className={`px-4 py-3 text-sm font-medium ${
-              (r.daysInactive ?? 999) > 60 ? 'text-red-600' : 'text-yellow-600'
-            }`}>
+            <td
+              className={`px-4 py-3 text-sm font-medium ${
+                (r.daysInactive ?? 999) > 60 ? 'text-red-600' : 'text-yellow-600'
+              }`}
+            >
               {r.daysInactive ?? '∞'}
             </td>
           </tr>
@@ -241,7 +271,13 @@ function CasesTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
 
   if (isLoading) return <PageSkeleton variant="table" />;
   if (isError) return <QueryErrorView error={error} onRetry={refetch} />;
-  if (!data?.length) return <EmptyState title="Недостаточно данных" description="Недостаточно данных для отчёта за выбранный период." />;
+  if (!data?.length)
+    return (
+      <EmptyState
+        title="Недостаточно данных"
+        description="Недостаточно данных для отчёта за выбранный период."
+      />
+    );
 
   return (
     <Table>
@@ -272,7 +308,8 @@ function FinanceTab() {
 
   if (isLoading) return <PageSkeleton variant="table" />;
   if (isError) return <QueryErrorView error={error} onRetry={refetch} />;
-  if (!data?.length) return <EmptyState title="Недостаточно данных" description="Нет финансовых данных." />;
+  if (!data?.length)
+    return <EmptyState title="Недостаточно данных" description="Нет финансовых данных." />;
 
   return (
     <Table>
@@ -280,7 +317,9 @@ function FinanceTab() {
       <tbody className="divide-y">
         {data.map((r: any) => (
           <tr key={r.id} className="hover:bg-gray-50">
-            <Td>{r.lastName} {r.firstName}</Td>
+            <Td>
+              {r.lastName} {r.firstName}
+            </Td>
             <Td>{fmtMoney(r.activeAmount)}</Td>
             <Td>{fmtMoney(r.closedAmount)}</Td>
             <Td bold>{fmtMoney(r.totalAmount)}</Td>
@@ -294,8 +333,11 @@ function FinanceTab() {
 /* ── Shared primitives ── */
 
 const CATEGORY_LABELS: Record<string, string> = {
-  civil: 'Гражданское', arbitration: 'Арбитраж', admin: 'Административное',
-  criminal: 'Уголовное', labor: 'Трудовое',
+  civil: 'Гражданское',
+  arbitration: 'Арбитраж',
+  admin: 'Административное',
+  criminal: 'Уголовное',
+  labor: 'Трудовое',
 };
 
 function fmtMoney(v: number) {
@@ -315,7 +357,9 @@ function Thead({ cols }: { cols: string[] }) {
     <thead className="bg-gray-50 text-left">
       <tr>
         {cols.map((c) => (
-          <th key={c} className="px-4 py-3 font-medium text-gray-500 whitespace-nowrap">{c}</th>
+          <th key={c} className="px-4 py-3 font-medium text-gray-500 whitespace-nowrap">
+            {c}
+          </th>
         ))}
       </tr>
     </thead>
@@ -324,7 +368,9 @@ function Thead({ cols }: { cols: string[] }) {
 
 function Td({ children, bold }: { children: React.ReactNode; bold?: boolean }) {
   return (
-    <td className={`px-4 py-3 text-sm whitespace-nowrap ${bold ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+    <td
+      className={`px-4 py-3 text-sm whitespace-nowrap ${bold ? 'font-semibold text-gray-900' : 'text-gray-700'}`}
+    >
       {children}
     </td>
   );

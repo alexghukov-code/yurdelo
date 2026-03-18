@@ -4,7 +4,14 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../mocks/server';
 import { renderWithProviders } from '../renderWith';
 import { Routes, Route } from 'react-router-dom';
-import { USERS, PARTIES, CASES, EMPTY_LIST, EMPTY_NOTIFICATIONS, EMPTY_REPORT } from '../mocks/fixtures';
+import {
+  USERS,
+  PARTIES,
+  CASES,
+  EMPTY_LIST,
+  EMPTY_NOTIFICATIONS,
+  EMPTY_REPORT,
+} from '../mocks/fixtures';
 import { AppShell } from '../../components/AppShell';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
 import { CasesPage } from '../../pages/CasesPage';
@@ -25,9 +32,7 @@ function renderApp(route: string, ui: React.ReactElement) {
   return renderWithProviders(
     <Routes>
       <Route element={<ProtectedRoute />}>
-        <Route element={<AppShell />}>
-          {ui}
-        </Route>
+        <Route element={<AppShell />}>{ui}</Route>
       </Route>
     </Routes>,
     { route },
@@ -41,9 +46,7 @@ describe('Admin flows', () => {
   });
 
   it('sees all sidebar nav items including Users and Reports', async () => {
-    server.use(
-      http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)),
-    );
+    server.use(http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)));
 
     renderApp('/', <Route index element={<CasesPage />} />);
 
@@ -58,7 +61,9 @@ describe('Admin flows', () => {
   it('can open case create modal', async () => {
     server.use(
       http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)),
-      http.get('/api/v1/parties', () => HttpResponse.json({ data: PARTIES, meta: { page: 1, limit: 50, total: 2, totalPages: 1 } })),
+      http.get('/api/v1/parties', () =>
+        HttpResponse.json({ data: PARTIES, meta: { page: 1, limit: 50, total: 2, totalPages: 1 } }),
+      ),
     );
 
     renderApp('/cases', <Route path="cases" element={<CasesPage />} />);
@@ -90,9 +95,7 @@ describe('Admin flows', () => {
   });
 
   it('sees + Пользователь button on users page', async () => {
-    server.use(
-      http.get('/api/v1/users', () => HttpResponse.json(EMPTY_LIST)),
-    );
+    server.use(http.get('/api/v1/users', () => HttpResponse.json(EMPTY_LIST)));
 
     renderApp('/users', <Route path="users" element={<UsersPage />} />);
 
@@ -102,15 +105,14 @@ describe('Admin flows', () => {
   });
 
   it('sees all report tabs', async () => {
-    server.use(
-      http.get('/api/v1/reports/my', () => HttpResponse.json(EMPTY_REPORT)),
-    );
+    server.use(http.get('/api/v1/reports/my', () => HttpResponse.json(EMPTY_REPORT)));
 
-    renderApp('/reports', (
+    renderApp(
+      '/reports',
       <Route path="reports" element={<ProtectedRoute roles={['admin', 'lawyer']} />}>
         <Route index element={<ReportsPage />} />
-      </Route>
-    ));
+      </Route>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Мои показатели')).toBeInTheDocument();

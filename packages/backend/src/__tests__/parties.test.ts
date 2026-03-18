@@ -36,9 +36,7 @@ describe('GET /v1/parties', () => {
       .mockResolvedValueOnce({ rows: [PARTY_ROW], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ total: 1 }] });
 
-    const res = await request(app)
-      .get('/v1/parties')
-      .set('Authorization', authHeader(USERS.admin));
+    const res = await request(app).get('/v1/parties').set('Authorization', authHeader(USERS.admin));
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
@@ -101,9 +99,9 @@ describe('POST /v1/parties', () => {
 
   it('creates party (201)', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })             // INN check — no dup
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // INN check — no dup
       .mockResolvedValueOnce({ rows: [{ ...PARTY_ROW, ...body }], rowCount: 1 }) // INSERT
-      .mockResolvedValueOnce({ rows: [] });                         // audit_log
+      .mockResolvedValueOnce({ rows: [] }); // audit_log
 
     const res = await request(app)
       .post('/v1/parties')
@@ -118,8 +116,8 @@ describe('POST /v1/parties', () => {
   it('returns warning: duplicate_inn when INN matches existing (not blocking)', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [{ id: 'existing', name: 'Old' }], rowCount: 1 }) // INN dup!
-      .mockResolvedValueOnce({ rows: [{ ...PARTY_ROW, ...body }], rowCount: 1 })        // INSERT still happens
-      .mockResolvedValueOnce({ rows: [] });                                              // audit
+      .mockResolvedValueOnce({ rows: [{ ...PARTY_ROW, ...body }], rowCount: 1 }) // INSERT still happens
+      .mockResolvedValueOnce({ rows: [] }); // audit
 
     const res = await request(app)
       .post('/v1/parties')
@@ -153,10 +151,7 @@ describe('POST /v1/parties', () => {
       .mockResolvedValueOnce({ rows: [PARTY_ROW], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [] });
 
-    await request(app)
-      .post('/v1/parties')
-      .set('Authorization', authHeader(USERS.admin))
-      .send(body);
+    await request(app).post('/v1/parties').set('Authorization', authHeader(USERS.admin)).send(body);
 
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO audit_log'),
@@ -197,9 +192,12 @@ describe('POST /v1/parties', () => {
 describe('GET /v1/parties/:id', () => {
   it('returns party with associated cases', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [PARTY_ROW], rowCount: 1 })  // party
-      .mockResolvedValueOnce({                                      // cases
-        rows: [{ id: CASES.active.id, name: CASES.active.name, status: 'active', category: 'civil' }],
+      .mockResolvedValueOnce({ rows: [PARTY_ROW], rowCount: 1 }) // party
+      .mockResolvedValueOnce({
+        // cases
+        rows: [
+          { id: CASES.active.id, name: CASES.active.name, status: 'active', category: 'civil' },
+        ],
         rowCount: 1,
       });
 
@@ -275,7 +273,7 @@ describe('PATCH /v1/parties/:id', () => {
 
   it('returns 409 STALE_DATA on optimistic lock conflict', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })              // UPDATE 0 rows
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // UPDATE 0 rows
       .mockResolvedValueOnce({ rows: [{ id: PARTIES.plaintiff.id }], rowCount: 1 }); // exists
 
     const res = await request(app)
@@ -320,9 +318,9 @@ describe('PATCH /v1/parties/:id', () => {
 describe('DELETE /v1/parties/:id', () => {
   it('admin soft-deletes party without active cases', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 })  // active cases check
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })              // soft delete
-      .mockResolvedValueOnce({ rows: [] });                          // audit
+      .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 }) // active cases check
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // soft delete
+      .mockResolvedValueOnce({ rows: [] }); // audit
 
     const res = await request(app)
       .delete(`/v1/parties/${PARTIES.plaintiff.id}`)

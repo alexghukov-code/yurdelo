@@ -6,35 +6,35 @@
  * separately in page code — this map covers role-level access only.
  */
 export const PERMISSIONS = {
-  'case:view':       ['admin', 'lawyer', 'viewer'],
-  'case:create':     ['admin', 'lawyer'],
-  'case:edit':       ['admin', 'lawyer'],
-  'case:delete':     ['admin'],
+  'case:view': ['admin', 'lawyer', 'viewer'],
+  'case:create': ['admin', 'lawyer'],
+  'case:edit': ['admin', 'lawyer'],
+  'case:delete': ['admin'],
 
-  'party:view':      ['admin', 'lawyer', 'viewer'],
-  'party:create':    ['admin', 'lawyer'],
-  'party:edit':      ['admin', 'lawyer'],
-  'party:delete':    ['admin'],
+  'party:view': ['admin', 'lawyer', 'viewer'],
+  'party:create': ['admin', 'lawyer'],
+  'party:edit': ['admin', 'lawyer'],
+  'party:delete': ['admin'],
 
-  'stage:create':    ['admin', 'lawyer'],
-  'stage:delete':    ['admin'],
+  'stage:create': ['admin', 'lawyer'],
+  'stage:delete': ['admin'],
 
-  'hearing:create':  ['admin', 'lawyer'],
-  'hearing:delete':  ['admin'],
+  'hearing:create': ['admin', 'lawyer'],
+  'hearing:delete': ['admin'],
 
-  'document:view':   ['admin', 'lawyer', 'viewer'],
+  'document:view': ['admin', 'lawyer', 'viewer'],
   'document:upload': ['admin', 'lawyer'],
   'document:delete': ['admin', 'lawyer'],
 
-  'report:view':     ['admin', 'lawyer'],
+  'report:view': ['admin', 'lawyer'],
 
-  'user:manage':     ['admin'],
+  'user:manage': ['admin'],
 
-  'nav:cases':       ['admin', 'lawyer', 'viewer'],
-  'nav:parties':     ['admin', 'lawyer', 'viewer'],
-  'nav:calendar':    ['admin', 'lawyer', 'viewer'],
-  'nav:reports':     ['admin', 'lawyer'],
-  'nav:users':       ['admin'],
+  'nav:cases': ['admin', 'lawyer', 'viewer'],
+  'nav:parties': ['admin', 'lawyer', 'viewer'],
+  'nav:calendar': ['admin', 'lawyer', 'viewer'],
+  'nav:reports': ['admin', 'lawyer'],
+  'nav:users': ['admin'],
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

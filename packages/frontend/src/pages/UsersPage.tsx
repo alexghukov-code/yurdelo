@@ -36,11 +36,12 @@ export function UsersPage() {
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['users', { page, role: roleFilter || undefined, status: statusFilter || undefined }],
-    queryFn: () => fetchUsers({
-      page,
-      role: roleFilter || undefined,
-      status: statusFilter || undefined,
-    }),
+    queryFn: () =>
+      fetchUsers({
+        page,
+        role: roleFilter || undefined,
+        status: statusFilter || undefined,
+      }),
     placeholderData: (prev) => prev,
   });
 
@@ -63,7 +64,10 @@ export function UsersPage() {
       <div className="flex gap-3 mb-4">
         <select
           value={roleFilter}
-          onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setRoleFilter(e.target.value);
+            setPage(1);
+          }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Все роли</option>
@@ -73,7 +77,10 @@ export function UsersPage() {
         </select>
         <select
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Все статусы</option>
@@ -87,7 +94,10 @@ export function UsersPage() {
       {isError && <QueryErrorView error={error} onRetry={refetch} />}
 
       {data && data.data.length === 0 && (
-        <EmptyState title="Пользователей нет" description="Не найдено пользователей по выбранным фильтрам." />
+        <EmptyState
+          title="Пользователей нет"
+          description="Не найдено пользователей по выбранным фильтрам."
+        />
       )}
 
       {data && data.data.length > 0 && (
@@ -108,13 +118,19 @@ export function UsersPage() {
                 {data.data.map((u) => (
                   <tr key={u.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
-                      <Link to={`/users/${u.id}`} className="font-medium text-blue-600 hover:text-blue-800">
-                        {u.lastName} {u.firstName}{u.middleName ? ` ${u.middleName}` : ''}
+                      <Link
+                        to={`/users/${u.id}`}
+                        className="font-medium text-blue-600 hover:text-blue-800"
+                      >
+                        {u.lastName} {u.firstName}
+                        {u.middleName ? ` ${u.middleName}` : ''}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-gray-500">{ROLE_LABELS[u.role] ?? u.role}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[u.status] ?? ''}`}>
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[u.status] ?? ''}`}
+                      >
                         {STATUS_LABELS[u.status] ?? u.status}
                       </span>
                     </td>

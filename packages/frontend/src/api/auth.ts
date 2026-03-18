@@ -41,7 +41,9 @@ export async function changePassword(body: { oldPassword: string; newPassword: s
 }
 
 export async function setup2fa() {
-  const { data } = await api.post<{ data: { qrCodeUrl: string; secret: string } }>('/auth/2fa/setup');
+  const { data } = await api.post<{ data: { qrCodeUrl: string; secret: string } }>(
+    '/auth/2fa/setup',
+  );
   return data.data;
 }
 

@@ -96,10 +96,7 @@ export async function updateCase(
   return data.data;
 }
 
-export async function updateCaseStatus(
-  id: string,
-  body: { status: string; updatedAt: string },
-) {
+export async function updateCaseStatus(id: string, body: { status: string; updatedAt: string }) {
   const { data } = await api.patch<{ data: Case }>(`/cases/${id}/status`, body);
   return data;
 }

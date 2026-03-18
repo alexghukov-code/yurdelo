@@ -15,17 +15,25 @@ import { RestoreUserModal } from '../components/RestoreUserModal';
 import toast from 'react-hot-toast';
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Руководитель', lawyer: 'Адвокат', viewer: 'Наблюдатель',
+  admin: 'Руководитель',
+  lawyer: 'Адвокат',
+  viewer: 'Наблюдатель',
 };
 const STATUS_LABELS: Record<string, string> = {
-  active: 'Активен', inactive: 'Неактивен',
+  active: 'Активен',
+  inactive: 'Неактивен',
 };
 const STATUS_STYLES: Record<string, string> = {
-  active: 'bg-green-100 text-green-800', inactive: 'bg-gray-100 text-gray-800',
+  active: 'bg-green-100 text-green-800',
+  inactive: 'bg-gray-100 text-gray-800',
 };
 const EVENT_LABELS: Record<string, string> = {
-  created: 'Создание', activated: 'Активация', deactivated: 'Деактивация',
-  restored: 'Восстановление', role_changed: 'Смена роли', password_changed: 'Смена пароля',
+  created: 'Создание',
+  activated: 'Активация',
+  deactivated: 'Деактивация',
+  restored: 'Восстановление',
+  role_changed: 'Смена роли',
+  password_changed: 'Смена пароля',
   profile_updated: 'Обновление профиля',
 };
 
@@ -39,7 +47,13 @@ export function UserProfilePage() {
   const [showDeactivate, setShowDeactivate] = useState(false);
   const [showRestore, setShowRestore] = useState(false);
 
-  const { data: profile, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: profile,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['users', id],
     queryFn: () => fetchUser(id!),
     enabled: !!id,
@@ -74,9 +88,19 @@ export function UserProfilePage() {
 
   return (
     <div>
-      <StaleDataModal open={staleOpen} onRefresh={() => { setStaleOpen(false); setEditing(false); refetch(); }} />
+      <StaleDataModal
+        open={staleOpen}
+        onRefresh={() => {
+          setStaleOpen(false);
+          setEditing(false);
+          refetch();
+        }}
+      />
 
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+      >
         <ArrowLeft className="h-4 w-4" /> Назад
       </button>
 
@@ -84,11 +108,16 @@ export function UserProfilePage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {profile.lastName} {profile.firstName}{profile.middleName ? ` ${profile.middleName}` : ''}
+            {profile.lastName} {profile.firstName}
+            {profile.middleName ? ` ${profile.middleName}` : ''}
           </h1>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-gray-500">{ROLE_LABELS[profile.role] ?? profile.role}</span>
-            <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[profile.status] ?? ''}`}>
+            <span className="text-sm text-gray-500">
+              {ROLE_LABELS[profile.role] ?? profile.role}
+            </span>
+            <span
+              className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[profile.status] ?? ''}`}
+            >
               {STATUS_LABELS[profile.status] ?? profile.status}
             </span>
           </div>
@@ -142,7 +171,13 @@ export function UserProfilePage() {
       {isSelf && <ChangePasswordSection />}
 
       {/* 2FA — own profile only */}
-      {isSelf && <TwoFaSection twoFaEnabled={profile.twoFaEnabled ?? false} isAdmin={profile.role === 'admin'} onEnabled={() => refetch()} />}
+      {isSelf && (
+        <TwoFaSection
+          twoFaEnabled={profile.twoFaEnabled ?? false}
+          isAdmin={profile.role === 'admin'}
+          onEnabled={() => refetch()}
+        />
+      )}
 
       {/* History section */}
       <div className="bg-white rounded-lg shadow p-6">
@@ -155,7 +190,10 @@ export function UserProfilePage() {
         ) : (
           <div className="space-y-3">
             {history.map((h) => (
-              <div key={h.id} className="flex items-start gap-3 text-sm border-l-2 border-gray-200 pl-4">
+              <div
+                key={h.id}
+                className="flex items-start gap-3 text-sm border-l-2 border-gray-200 pl-4"
+              >
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">{EVENT_LABELS[h.event] ?? h.event}</p>
                   {h.comment && <p className="text-gray-500 mt-0.5">{h.comment}</p>}
@@ -174,7 +212,10 @@ export function UserProfilePage() {
         <DeactivateUserModal
           userId={profile.id}
           userName={`${profile.lastName} ${profile.firstName}`}
-          onClose={() => { setShowDeactivate(false); refetch(); }}
+          onClose={() => {
+            setShowDeactivate(false);
+            refetch();
+          }}
         />
       )}
       {showRestore && (
@@ -182,7 +223,10 @@ export function UserProfilePage() {
           userId={profile.id}
           userName={`${profile.lastName} ${profile.firstName}`}
           previousRole={profile.role}
-          onClose={() => { setShowRestore(false); refetch(); }}
+          onClose={() => {
+            setShowRestore(false);
+            refetch();
+          }}
         />
       )}
     </div>
@@ -198,7 +242,13 @@ interface PasswordFormValues {
 }
 
 function ChangePasswordSection() {
-  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<PasswordFormValues>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<PasswordFormValues>();
 
   const mutation = useMutation({
     mutationFn: ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }) =>
@@ -216,36 +266,66 @@ function ChangePasswordSection() {
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Смена пароля</h2>
       <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-3 max-w-md">
         <div>
-          <label htmlFor="cp-old" className="block text-xs text-gray-500 mb-1">Текущий пароль</label>
-          <input id="cp-old" type="password" autoComplete="current-password"
+          <label htmlFor="cp-old" className="block text-xs text-gray-500 mb-1">
+            Текущий пароль
+          </label>
+          <input
+            id="cp-old"
+            type="password"
+            autoComplete="current-password"
             {...register('oldPassword', { required: 'Обязательно.' })}
-            className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.oldPassword ? 'border-red-300' : 'border-gray-300'}`} />
-          {errors.oldPassword && <p className="text-xs text-red-600 mt-1">{errors.oldPassword.message}</p>}
+            className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.oldPassword ? 'border-red-300' : 'border-gray-300'}`}
+          />
+          {errors.oldPassword && (
+            <p className="text-xs text-red-600 mt-1">{errors.oldPassword.message}</p>
+          )}
         </div>
         <div>
-          <label htmlFor="cp-new" className="block text-xs text-gray-500 mb-1">Новый пароль</label>
-          <input id="cp-new" type="password" autoComplete="new-password"
+          <label htmlFor="cp-new" className="block text-xs text-gray-500 mb-1">
+            Новый пароль
+          </label>
+          <input
+            id="cp-new"
+            type="password"
+            autoComplete="new-password"
             {...register('newPassword', {
               required: 'Обязательно.',
               minLength: { value: 8, message: 'Минимум 8 символов.' },
-              pattern: { value: /(?=.*[a-zA-Zа-яА-Я])(?=.*\d)/, message: 'Буква + цифра обязательны.' },
+              pattern: {
+                value: /(?=.*[a-zA-Zа-яА-Я])(?=.*\d)/,
+                message: 'Буква + цифра обязательны.',
+              },
             })}
-            className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.newPassword ? 'border-red-300' : 'border-gray-300'}`} />
-          {errors.newPassword && <p className="text-xs text-red-600 mt-1">{errors.newPassword.message}</p>}
+            className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.newPassword ? 'border-red-300' : 'border-gray-300'}`}
+          />
+          {errors.newPassword && (
+            <p className="text-xs text-red-600 mt-1">{errors.newPassword.message}</p>
+          )}
         </div>
         <div>
-          <label htmlFor="cp-confirm" className="block text-xs text-gray-500 mb-1">Подтверждение</label>
-          <input id="cp-confirm" type="password" autoComplete="new-password"
+          <label htmlFor="cp-confirm" className="block text-xs text-gray-500 mb-1">
+            Подтверждение
+          </label>
+          <input
+            id="cp-confirm"
+            type="password"
+            autoComplete="new-password"
             {...register('confirmPassword', {
               required: 'Обязательно.',
               validate: (v) => v === newPassword || 'Пароли не совпадают.',
             })}
-            className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'}`} />
-          {errors.confirmPassword && <p className="text-xs text-red-600 mt-1">{errors.confirmPassword.message}</p>}
+            className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'}`}
+          />
+          {errors.confirmPassword && (
+            <p className="text-xs text-red-600 mt-1">{errors.confirmPassword.message}</p>
+          )}
         </div>
         <p className="text-xs text-gray-400">Минимум 8 символов, буква + цифра.</p>
-        <button type="submit" disabled={mutation.isPending}
-          className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={mutation.isPending}
+          className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+        >
           {mutation.isPending ? 'Сохранение...' : 'Изменить пароль'}
         </button>
       </form>
@@ -255,7 +335,15 @@ function ChangePasswordSection() {
 
 /* ── 2FA setup ── */
 
-function TwoFaSection({ twoFaEnabled, isAdmin, onEnabled }: { twoFaEnabled: boolean; isAdmin: boolean; onEnabled: () => void }) {
+function TwoFaSection({
+  twoFaEnabled,
+  isAdmin,
+  onEnabled,
+}: {
+  twoFaEnabled: boolean;
+  isAdmin: boolean;
+  onEnabled: () => void;
+}) {
   const [step, setStep] = useState<'idle' | 'qr' | 'done'>(twoFaEnabled ? 'done' : 'idle');
   const [qrData, setQrData] = useState<{ qrCodeUrl: string; secret: string } | null>(null);
   const [code, setCode] = useState('');
@@ -317,10 +405,14 @@ function TwoFaSection({ twoFaEnabled, isAdmin, onEnabled }: { twoFaEnabled: bool
           <img src={qrData.qrCodeUrl} alt="QR-код 2FA" className="w-48 h-48 border rounded-lg" />
           <div>
             <p className="text-xs text-gray-500 mb-1">Или введите ключ вручную:</p>
-            <code className="text-xs bg-gray-100 px-2 py-1 rounded select-all break-all">{qrData.secret}</code>
+            <code className="text-xs bg-gray-100 px-2 py-1 rounded select-all break-all">
+              {qrData.secret}
+            </code>
           </div>
           <div>
-            <label htmlFor="tfa-code" className="block text-sm font-medium text-gray-700 mb-1">Код из приложения</label>
+            <label htmlFor="tfa-code" className="block text-sm font-medium text-gray-700 mb-1">
+              Код из приложения
+            </label>
             <input
               id="tfa-code"
               type="text"
@@ -341,7 +433,11 @@ function TwoFaSection({ twoFaEnabled, isAdmin, onEnabled }: { twoFaEnabled: bool
               {verifyMut.isPending ? 'Проверка...' : 'Подтвердить'}
             </button>
             <button
-              onClick={() => { setStep('idle'); setQrData(null); setCode(''); }}
+              onClick={() => {
+                setStep('idle');
+                setQrData(null);
+                setCode('');
+              }}
               className="px-4 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
             >
               Отмена
@@ -365,7 +461,12 @@ function ProfileFields({ profile, isAdmin }: { profile: any; isAdmin: boolean })
       {isAdmin && <Field label="Email" value={profile.email ?? '—'} />}
       {isAdmin && <Field label="Телефон" value={profile.phone ?? '—'} />}
       {isAdmin && <Field label="2FA" value={profile.twoFaEnabled ? 'Включена' : 'Отключена'} />}
-      {isAdmin && <Field label="Создан" value={profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('ru') : '—'} />}
+      {isAdmin && (
+        <Field
+          label="Создан"
+          value={profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('ru') : '—'}
+        />
+      )}
     </dl>
   );
 }
@@ -403,7 +504,11 @@ function EditForm({
   onCancel: () => void;
   onSubmit: (values: EditFormValues) => void;
 }) {
-  const { register, handleSubmit, formState: { errors } } = useForm<EditFormValues>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<EditFormValues>({
     defaultValues: {
       lastName: profile.lastName,
       firstName: profile.firstName,
@@ -419,26 +524,56 @@ function EditForm({
       {isAdmin && (
         <>
           <div>
-            <label htmlFor="up-last" className="block text-xs text-gray-500 mb-1">Фамилия</label>
-            <input id="up-last" {...register('lastName', { required: 'Обязательно.', minLength: { value: 2, message: 'Минимум 2 символа.' } })}
-              className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.lastName ? 'border-red-300' : 'border-gray-300'}`} />
-            {errors.lastName && <p className="text-xs text-red-600 mt-1">{errors.lastName.message}</p>}
+            <label htmlFor="up-last" className="block text-xs text-gray-500 mb-1">
+              Фамилия
+            </label>
+            <input
+              id="up-last"
+              {...register('lastName', {
+                required: 'Обязательно.',
+                minLength: { value: 2, message: 'Минимум 2 символа.' },
+              })}
+              className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.lastName ? 'border-red-300' : 'border-gray-300'}`}
+            />
+            {errors.lastName && (
+              <p className="text-xs text-red-600 mt-1">{errors.lastName.message}</p>
+            )}
           </div>
           <div>
-            <label htmlFor="up-first" className="block text-xs text-gray-500 mb-1">Имя</label>
-            <input id="up-first" {...register('firstName', { required: 'Обязательно.', minLength: { value: 2, message: 'Минимум 2 символа.' } })}
-              className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.firstName ? 'border-red-300' : 'border-gray-300'}`} />
-            {errors.firstName && <p className="text-xs text-red-600 mt-1">{errors.firstName.message}</p>}
+            <label htmlFor="up-first" className="block text-xs text-gray-500 mb-1">
+              Имя
+            </label>
+            <input
+              id="up-first"
+              {...register('firstName', {
+                required: 'Обязательно.',
+                minLength: { value: 2, message: 'Минимум 2 символа.' },
+              })}
+              className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.firstName ? 'border-red-300' : 'border-gray-300'}`}
+            />
+            {errors.firstName && (
+              <p className="text-xs text-red-600 mt-1">{errors.firstName.message}</p>
+            )}
           </div>
           <div>
-            <label htmlFor="up-mid" className="block text-xs text-gray-500 mb-1">Отчество</label>
-            <input id="up-mid" {...register('middleName')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <label htmlFor="up-mid" className="block text-xs text-gray-500 mb-1">
+              Отчество
+            </label>
+            <input
+              id="up-mid"
+              {...register('middleName')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
           </div>
           <div>
-            <label htmlFor="up-role" className="block text-xs text-gray-500 mb-1">Роль</label>
-            <select id="up-role" {...register('role')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <label htmlFor="up-role" className="block text-xs text-gray-500 mb-1">
+              Роль
+            </label>
+            <select
+              id="up-role"
+              {...register('role')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
               <option value="admin">Руководитель</option>
               <option value="lawyer">Адвокат</option>
               <option value="viewer">Наблюдатель</option>
@@ -449,24 +584,41 @@ function EditForm({
 
       {/* Email & phone — editable for admin and lawyer-self */}
       <div>
-        <label htmlFor="up-email" className="block text-xs text-gray-500 mb-1">Email</label>
-        <input id="up-email" type="email" {...register('email', { required: 'Обязательно.' })}
-          className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.email ? 'border-red-300' : 'border-gray-300'}`} />
+        <label htmlFor="up-email" className="block text-xs text-gray-500 mb-1">
+          Email
+        </label>
+        <input
+          id="up-email"
+          type="email"
+          {...register('email', { required: 'Обязательно.' })}
+          className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.email ? 'border-red-300' : 'border-gray-300'}`}
+        />
         {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
       </div>
       <div>
-        <label htmlFor="up-phone" className="block text-xs text-gray-500 mb-1">Телефон</label>
-        <input id="up-phone" {...register('phone')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+        <label htmlFor="up-phone" className="block text-xs text-gray-500 mb-1">
+          Телефон
+        </label>
+        <input
+          id="up-phone"
+          {...register('phone')}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+        />
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
-        <button type="button" onClick={onCancel}
-          className="px-4 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
+        >
           Отмена
         </button>
-        <button type="submit" disabled={isSubmitting}
-          className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+        >
           {isSubmitting ? 'Сохранение...' : 'Сохранить'}
         </button>
       </div>

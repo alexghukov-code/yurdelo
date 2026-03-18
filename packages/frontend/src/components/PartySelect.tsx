@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchParties, type Party } from '../api/parties';
+import { fetchParties } from '../api/parties';
 import { useDebounce } from '../hooks/useDebounce';
 
 interface PartySelectProps {
@@ -43,7 +43,8 @@ export function PartySelect({ label, value, onChange, error }: PartySelectProps)
         <option value="">— Выберите —</option>
         {parties.map((p) => (
           <option key={p.id} value={p.id}>
-            {p.name}{p.inn ? ` (ИНН ${p.inn})` : ''}
+            {p.name}
+            {p.inn ? ` (ИНН ${p.inn})` : ''}
           </option>
         ))}
       </select>

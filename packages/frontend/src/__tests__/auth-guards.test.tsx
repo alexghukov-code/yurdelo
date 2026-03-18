@@ -14,8 +14,12 @@ function mockUser(role: 'admin' | 'lawyer' | 'viewer') {
     http.get('/api/v1/auth/me', () =>
       HttpResponse.json({
         data: {
-          id: 'u1', email: `${role}@test.ru`, role,
-          firstName: 'Тест', lastName: 'Тестов', twoFaEnabled: false,
+          id: 'u1',
+          email: `${role}@test.ru`,
+          role,
+          firstName: 'Тест',
+          lastName: 'Тестов',
+          twoFaEnabled: false,
         },
       }),
     ),
@@ -25,7 +29,9 @@ function mockUser(role: 'admin' | 'lawyer' | 'viewer') {
 function mockNoUser() {
   localStorage.removeItem('accessToken');
   server.use(
-    http.get('/api/v1/auth/me', () => HttpResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 })),
+    http.get('/api/v1/auth/me', () =>
+      HttpResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 }),
+    ),
   );
 }
 
@@ -120,11 +126,14 @@ describe('PermissionGate', () => {
 
     renderWithProviders(
       <Routes>
-        <Route path="/" element={
-          <PermissionGate roles={['admin', 'lawyer']}>
-            <button>Create</button>
-          </PermissionGate>
-        } />
+        <Route
+          path="/"
+          element={
+            <PermissionGate roles={['admin', 'lawyer']}>
+              <button>Create</button>
+            </PermissionGate>
+          }
+        />
       </Routes>,
     );
 
@@ -138,14 +147,17 @@ describe('PermissionGate', () => {
 
     renderWithProviders(
       <Routes>
-        <Route path="/" element={
-          <div>
-            <span>Page</span>
-            <PermissionGate roles={['admin', 'lawyer']}>
-              <button>Create</button>
-            </PermissionGate>
-          </div>
-        } />
+        <Route
+          path="/"
+          element={
+            <div>
+              <span>Page</span>
+              <PermissionGate roles={['admin', 'lawyer']}>
+                <button>Create</button>
+              </PermissionGate>
+            </div>
+          }
+        />
       </Routes>,
     );
 
@@ -160,11 +172,14 @@ describe('PermissionGate', () => {
 
     renderWithProviders(
       <Routes>
-        <Route path="/" element={
-          <PermissionGate allow="case:delete" fallback={<span>Read only</span>}>
-            <button>Delete</button>
-          </PermissionGate>
-        } />
+        <Route
+          path="/"
+          element={
+            <PermissionGate allow="case:delete" fallback={<span>Read only</span>}>
+              <button>Delete</button>
+            </PermissionGate>
+          }
+        />
       </Routes>,
     );
 
@@ -179,11 +194,14 @@ describe('PermissionGate', () => {
 
     renderWithProviders(
       <Routes>
-        <Route path="/" element={
-          <PermissionGate allow="case:create">
-            <button>+ Дело</button>
-          </PermissionGate>
-        } />
+        <Route
+          path="/"
+          element={
+            <PermissionGate allow="case:create">
+              <button>+ Дело</button>
+            </PermissionGate>
+          }
+        />
       </Routes>,
     );
 
@@ -197,14 +215,17 @@ describe('PermissionGate', () => {
 
     renderWithProviders(
       <Routes>
-        <Route path="/" element={
-          <div>
-            <span>Page</span>
-            <PermissionGate allow="case:create">
-              <button>+ Дело</button>
-            </PermissionGate>
-          </div>
-        } />
+        <Route
+          path="/"
+          element={
+            <div>
+              <span>Page</span>
+              <PermissionGate allow="case:create">
+                <button>+ Дело</button>
+              </PermissionGate>
+            </div>
+          }
+        />
       </Routes>,
     );
 
@@ -219,14 +240,17 @@ describe('PermissionGate', () => {
 
     renderWithProviders(
       <Routes>
-        <Route path="/" element={
-          <div>
-            <span>Page</span>
-            <PermissionGate allow="case:delete">
-              <button>Удалить</button>
-            </PermissionGate>
-          </div>
-        } />
+        <Route
+          path="/"
+          element={
+            <div>
+              <span>Page</span>
+              <PermissionGate allow="case:delete">
+                <button>Удалить</button>
+              </PermissionGate>
+            </div>
+          }
+        />
       </Routes>,
     );
 

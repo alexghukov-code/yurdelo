@@ -26,7 +26,9 @@ export async function uploadDocument(
 }
 
 export async function getDocumentUrl(id: string): Promise<{ url: string; expiresAt: string }> {
-  const { data } = await api.get<{ data: { url: string; expiresAt: string } }>(`/documents/${id}/url`);
+  const { data } = await api.get<{ data: { url: string; expiresAt: string } }>(
+    `/documents/${id}/url`,
+  );
   return data.data;
 }
 

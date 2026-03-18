@@ -5,8 +5,11 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { AppError } from '../utils/errors.js';
 import { writeAuditLog } from '../utils/audit.js';
 import {
-  validate, createCaseSchema, updateCaseSchema,
-  changeCaseStatusSchema, setFinalResultSchema,
+  validate,
+  createCaseSchema,
+  updateCaseSchema,
+  changeCaseStatusSchema,
+  setFinalResultSchema,
 } from '../utils/validation.js';
 import { getDb } from '../utils/db.js';
 import '../types.js';
@@ -60,10 +63,7 @@ export function casesRouter(deps: { db: Pool; redis: Redis }) {
          LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
         [...params, limit, offset],
       ),
-      db.query(
-        `SELECT count(*)::int AS total FROM cases c ${where}`,
-        params,
-      ),
+      db.query(`SELECT count(*)::int AS total FROM cases c ${where}`, params),
     ]);
 
     const total = countRows[0]?.total ?? 0;
@@ -77,9 +77,7 @@ export function casesRouter(deps: { db: Pool; redis: Redis }) {
   router.post('/cases', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
     const db = getDb(req, rawDb);
     const body = validate(createCaseSchema, req.body);
-    const lawyerId = req.user!.role === 'admin'
-      ? (body.lawyerId ?? req.user!.id)
-      : req.user!.id;
+    const lawyerId = req.user!.role === 'admin' ? (body.lawyerId ?? req.user!.id) : req.user!.id;
 
     const { rows } = await db.query(
       `INSERT INTO cases (name, plt_id, def_id, lawyer_id, category, claim_amount)
@@ -89,9 +87,13 @@ export function casesRouter(deps: { db: Pool; redis: Redis }) {
     );
 
     await writeAuditLog(db, {
-      userId: req.user!.id, action: 'CREATE', entityType: 'case',
-      entityId: rows[0].id, newValue: { name: body.name, category: body.category },
-      ip: req.ip, userAgent: req.headers['user-agent'] as string,
+      userId: req.user!.id,
+      action: 'CREATE',
+      entityType: 'case',
+      entityId: rows[0].id,
+      newValue: { name: body.name, category: body.category },
+      ip: req.ip,
+      userAgent: req.headers['user-agent'] as string,
     });
 
     res.status(201).json({ data: formatCase(rows[0]) });
@@ -137,8 +139,12 @@ export function casesRouter(deps: { db: Pool; redis: Redis }) {
     for (const d of docs) {
       if (!docMap.has(d.hearing_id)) docMap.set(d.hearing_id, []);
       docMap.get(d.hearing_id)!.push({
-        id: d.id, fileName: d.file_name, fileSize: d.file_size,
-        mimeType: d.mime_type, uploadedBy: d.uploaded_by, createdAt: d.created_at,
+        id: d.id,
+        fileName: d.file_name,
+        fileSize: d.file_size,
+        mimeType: d.mime_type,
+        uploadedBy: d.uploaded_by,
+        createdAt: d.created_at,
       });
     }
 
@@ -155,9 +161,14 @@ export function casesRouter(deps: { db: Pool; redis: Redis }) {
       data: {
         ...formatCase(rows[0]),
         stages: stages.map((s: any) => ({
-          id: s.id, stageTypeId: s.stage_type_id, stageTypeName: s.stage_type_name,
-          sortOrder: s.sort_order, court: s.court, caseNumber: s.case_number,
-          createdAt: s.created_at, updatedAt: s.updated_at,
+          id: s.id,
+          stageTypeId: s.stage_type_id,
+          stageTypeName: s.stage_type_name,
+          sortOrder: s.sort_order,
+          court: s.court,
+          caseNumber: s.case_number,
+          createdAt: s.created_at,
+          updatedAt: s.updated_at,
           hearings: stageMap.get(s.id) ?? [],
         })),
       },
@@ -171,15 +182,21 @@ export function casesRouter(deps: { db: Pool; redis: Redis }) {
     const body = validate(updateCaseSchema, req.body);
 
     const map: Record<string, string> = {
-      name: 'name', pltId: 'plt_id', defId: 'def_id',
-      category: 'category', claimAmount: 'claim_amount',
+      name: 'name',
+      pltId: 'plt_id',
+      defId: 'def_id',
+      category: 'category',
+      claimAmount: 'claim_amount',
     };
     const sets: string[] = [];
     const vals: unknown[] = [];
     let idx = 1;
     for (const [js, col] of Object.entries(map)) {
       const v = (body as any)[js];
-      if (v !== undefined) { sets.push(`${col} = $${idx++}`); vals.push(v); }
+      if (v !== undefined) {
+        sets.push(`${col} = $${idx++}`);
+        vals.push(v);
+      }
     }
     if (!sets.length) throw AppError.badRequest('Нет полей для обновления.');
 
@@ -216,50 +233,65 @@ export function casesRouter(deps: { db: Pool; redis: Redis }) {
     if (!rowCount) throw AppError.notFound('Дело не найдено.');
 
     await writeAuditLog(db, {
-      userId: req.user!.id, action: 'DELETE', entityType: 'case',
+      userId: req.user!.id,
+      action: 'DELETE',
+      entityType: 'case',
       entityId: req.params.id as string,
-      ip: req.ip, userAgent: req.headers['user-agent'] as string,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'] as string,
     });
     res.json({ data: { message: 'Дело удалено.' } });
   });
 
   // ── PATCH /cases/:id/status ─────────────────────────
-  router.patch('/cases/:id/status', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
-    const db = getDb(req, rawDb);
-    await assertOwnership(db, req.params.id as string, req.user!);
-    const { status, updatedAt } = validate(changeCaseStatusSchema, req.body);
+  router.patch(
+    '/cases/:id/status',
+    requireAuth,
+    requireRole('admin', 'lawyer'),
+    async (req, res) => {
+      const db = getDb(req, rawDb);
+      await assertOwnership(db, req.params.id as string, req.user!);
+      const { status, updatedAt } = validate(changeCaseStatusSchema, req.body);
 
-    const extra = status === 'closed' ? `, closed_at = NOW()` : '';
-    const { rows } = await db.query(
-      `UPDATE cases SET status = $1${extra}
+      const extra = status === 'closed' ? `, closed_at = NOW()` : '';
+      const { rows } = await db.query(
+        `UPDATE cases SET status = $1${extra}
        WHERE id = $2 AND updated_at = $3 AND deleted_at IS NULL
        RETURNING *`,
-      [status, req.params.id, updatedAt],
-    );
-    if (!rows.length) await checkExistsOrStale(db, 'cases', req.params.id as string);
+        [status, req.params.id, updatedAt],
+      );
+      if (!rows.length) await checkExistsOrStale(db, 'cases', req.params.id as string);
 
-    // Suggest final_result if closing without one
-    const suggestion = status === 'closed' && !rows[0].final_result
-      ? { suggestedAction: 'set_final_result' } : undefined;
+      // Suggest final_result if closing without one
+      const suggestion =
+        status === 'closed' && !rows[0].final_result
+          ? { suggestedAction: 'set_final_result' }
+          : undefined;
 
-    res.json({ data: formatCase(rows[0]), ...(suggestion && { suggestion }) });
-  });
+      res.json({ data: formatCase(rows[0]), ...(suggestion && { suggestion }) });
+    },
+  );
 
   // ── PATCH /cases/:id/final-result ───────────────────
-  router.patch('/cases/:id/final-result', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
-    const db = getDb(req, rawDb);
-    await assertOwnership(db, req.params.id as string, req.user!);
-    const { finalResult, updatedAt } = validate(setFinalResultSchema, req.body);
+  router.patch(
+    '/cases/:id/final-result',
+    requireAuth,
+    requireRole('admin', 'lawyer'),
+    async (req, res) => {
+      const db = getDb(req, rawDb);
+      await assertOwnership(db, req.params.id as string, req.user!);
+      const { finalResult, updatedAt } = validate(setFinalResultSchema, req.body);
 
-    const { rows } = await db.query(
-      `UPDATE cases SET final_result = $1
+      const { rows } = await db.query(
+        `UPDATE cases SET final_result = $1
        WHERE id = $2 AND updated_at = $3 AND deleted_at IS NULL
        RETURNING *`,
-      [finalResult, req.params.id, updatedAt],
-    );
-    if (!rows.length) await checkExistsOrStale(db, 'cases', req.params.id as string);
-    res.json({ data: formatCase(rows[0]) });
-  });
+        [finalResult, req.params.id, updatedAt],
+      );
+      if (!rows.length) await checkExistsOrStale(db, 'cases', req.params.id as string);
+      res.json({ data: formatCase(rows[0]) });
+    },
+  );
 
   // ── GET /cases/:id/transfers ────────────────────────
   router.get('/cases/:id/transfers', requireAuth, async (req, res) => {
@@ -289,7 +321,11 @@ function assertAccess(caseRow: any, user: { id: string; role: string }) {
   }
 }
 
-async function assertOwnership(db: { query: (text: string, params?: unknown[]) => Promise<any> }, caseId: string, user: { id: string; role: string }) {
+async function assertOwnership(
+  db: { query: (text: string, params?: unknown[]) => Promise<any> },
+  caseId: string,
+  user: { id: string; role: string },
+) {
   if (user.role === 'admin') return;
   if (user.role === 'viewer') throw AppError.forbidden();
   const { rows } = await db.query(
@@ -299,42 +335,65 @@ async function assertOwnership(db: { query: (text: string, params?: unknown[]) =
   if (!rows.length) throw AppError.notFound('Дело не найдено.');
 }
 
-async function checkExistsOrStale(db: { query: (text: string, params?: unknown[]) => Promise<any> }, table: string, id: string): Promise<never> {
-  const { rows } = await db.query(
-    `SELECT id FROM ${table} WHERE id = $1 AND deleted_at IS NULL`, [id],
-  );
+async function checkExistsOrStale(
+  db: { query: (text: string, params?: unknown[]) => Promise<any> },
+  table: string,
+  id: string,
+): Promise<never> {
+  const { rows } = await db.query(`SELECT id FROM ${table} WHERE id = $1 AND deleted_at IS NULL`, [
+    id,
+  ]);
   if (!rows.length) throw AppError.notFound('Запись не найдена.');
   throw AppError.conflict('Данные изменены другим пользователем. Обновите страницу.');
 }
 
 function formatCase(r: any) {
   return {
-    id: r.id, name: r.name, category: r.category, status: r.status,
-    finalResult: r.final_result, claimAmount: r.claim_amount,
+    id: r.id,
+    name: r.name,
+    category: r.category,
+    status: r.status,
+    finalResult: r.final_result,
+    claimAmount: r.claim_amount,
     lawyerId: r.lawyer_id,
-    pltId: r.plt_id, defId: r.def_id,
-    pltName: r.plt_name, defName: r.def_name,
+    pltId: r.plt_id,
+    defId: r.def_id,
+    pltName: r.plt_name,
+    defName: r.def_name,
     lawyerName: r.lawyer_last ? `${r.lawyer_last} ${r.lawyer_first}` : undefined,
-    closedAt: r.closed_at, createdAt: r.created_at, updatedAt: r.updated_at,
+    closedAt: r.closed_at,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
   };
 }
 
 function formatHearing(h: any) {
   return {
-    id: h.id, stageId: h.stage_id, type: h.type, datetime: h.datetime,
-    result: h.result, appealed: h.appealed,
-    newDatetime: h.new_datetime, adjReason: h.adj_reason, notes: h.notes,
-    createdAt: h.created_at, updatedAt: h.updated_at,
+    id: h.id,
+    stageId: h.stage_id,
+    type: h.type,
+    datetime: h.datetime,
+    result: h.result,
+    appealed: h.appealed,
+    newDatetime: h.new_datetime,
+    adjReason: h.adj_reason,
+    notes: h.notes,
+    createdAt: h.created_at,
+    updatedAt: h.updated_at,
   };
 }
 
 function formatTransfer(t: any) {
   return {
-    id: t.id, caseId: t.case_id,
-    fromId: t.from_id, toId: t.to_id,
+    id: t.id,
+    caseId: t.case_id,
+    fromId: t.from_id,
+    toId: t.to_id,
     fromName: `${t.from_last} ${t.from_first}`,
     toName: `${t.to_last} ${t.to_first}`,
-    transferDate: t.transfer_date, comment: t.comment, createdAt: t.created_at,
+    transferDate: t.transfer_date,
+    comment: t.comment,
+    createdAt: t.created_at,
   };
 }
 

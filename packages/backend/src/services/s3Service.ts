@@ -34,7 +34,11 @@ function getClient(): S3Client {
 }
 
 export interface S3Service {
-  upload(file: Buffer, originalName: string, mimeType: string): Promise<{ s3Key: string; size: number }>;
+  upload(
+    file: Buffer,
+    originalName: string,
+    mimeType: string,
+  ): Promise<{ s3Key: string; size: number }>;
   getSignedDownloadUrl(s3Key: string): Promise<{ url: string; expiresAt: string }>;
   tagAsDeleted(s3Key: string): Promise<void>;
 }

@@ -21,10 +21,22 @@ interface FormValues {
   caseNumber: string;
 }
 
-export function StageFormModal({ mode, caseId, existingStages, initialData, onClose, onStale }: Props) {
+export function StageFormModal({
+  mode,
+  caseId,
+  existingStages,
+  initialData,
+  onClose,
+  onStale,
+}: Props) {
   const qc = useQueryClient();
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>({
     defaultValues: {
       stageTypeId: initialData?.stageTypeId ?? '',
       court: initialData?.court ?? '',
@@ -37,11 +49,16 @@ export function StageFormModal({ mode, caseId, existingStages, initialData, onCl
   const maxExistingOrder = existingStages.length
     ? Math.max(...existingStages.map((s) => s.sortOrder))
     : 0;
-  const showWarning = mode === 'create' && selectedType && selectedType.sortOrder <= maxExistingOrder;
+  const showWarning =
+    mode === 'create' && selectedType && selectedType.sortOrder <= maxExistingOrder;
 
   const createMutation = useMutation({
-    mutationFn: (body: { stageTypeId: string; sortOrder: number; court: string; caseNumber: string }) =>
-      createStage(caseId, body),
+    mutationFn: (body: {
+      stageTypeId: string;
+      sortOrder: number;
+      court: string;
+      caseNumber: string;
+    }) => createStage(caseId, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['cases', caseId] });
       toast.success('Стадия добавлена');
@@ -89,14 +106,18 @@ export function StageFormModal({ mode, caseId, existingStages, initialData, onCl
           <h3 className="text-lg font-semibold">
             {mode === 'create' ? 'Новая стадия' : 'Редактирование стадии'}
           </h3>
-          <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
+          <button onClick={onClose}>
+            <X className="h-5 w-5 text-gray-400" />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
           {/* Stage type — only for create */}
           {mode === 'create' && (
             <div>
-              <label htmlFor="sf-type" className="block text-sm font-medium text-gray-700 mb-1">Тип стадии</label>
+              <label htmlFor="sf-type" className="block text-sm font-medium text-gray-700 mb-1">
+                Тип стадии
+              </label>
               <select
                 id="sf-type"
                 {...register('stageTypeId', { required: 'Выберите тип стадии.' })}
@@ -104,10 +125,14 @@ export function StageFormModal({ mode, caseId, existingStages, initialData, onCl
               >
                 <option value="">— Выберите —</option>
                 {STAGE_TYPES.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
                 ))}
               </select>
-              {errors.stageTypeId && <p className="text-xs text-red-600 mt-1">{errors.stageTypeId.message}</p>}
+              {errors.stageTypeId && (
+                <p className="text-xs text-red-600 mt-1">{errors.stageTypeId.message}</p>
+              )}
             </div>
           )}
 
@@ -115,32 +140,48 @@ export function StageFormModal({ mode, caseId, existingStages, initialData, onCl
           {showWarning && (
             <div className="flex items-center gap-2 rounded-lg bg-yellow-50 border border-yellow-200 px-3 py-2 text-sm text-yellow-800">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              Вы добавляете «{selectedType!.name}» (порядок {selectedType!.sortOrder}) раньше существующей стадии с порядком {maxExistingOrder}. Продолжить?
+              Вы добавляете «{selectedType!.name}» (порядок {selectedType!.sortOrder}) раньше
+              существующей стадии с порядком {maxExistingOrder}. Продолжить?
             </div>
           )}
 
           <div>
-            <label htmlFor="sf-court" className="block text-sm font-medium text-gray-700 mb-1">Суд</label>
+            <label htmlFor="sf-court" className="block text-sm font-medium text-gray-700 mb-1">
+              Суд
+            </label>
             <input
               id="sf-court"
-              {...register('court', { required: 'Обязательно.', minLength: { value: 3, message: 'Минимум 3 символа.' } })}
+              {...register('court', {
+                required: 'Обязательно.',
+                minLength: { value: 3, message: 'Минимум 3 символа.' },
+              })}
               className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.court ? 'border-red-300' : 'border-gray-300'}`}
             />
             {errors.court && <p className="text-xs text-red-600 mt-1">{errors.court.message}</p>}
           </div>
 
           <div>
-            <label htmlFor="sf-number" className="block text-sm font-medium text-gray-700 mb-1">Номер дела</label>
+            <label htmlFor="sf-number" className="block text-sm font-medium text-gray-700 mb-1">
+              Номер дела
+            </label>
             <input
               id="sf-number"
-              {...register('caseNumber', { required: 'Обязательно.', minLength: { value: 5, message: 'Минимум 5 символов.' } })}
+              {...register('caseNumber', {
+                required: 'Обязательно.',
+                minLength: { value: 5, message: 'Минимум 5 символов.' },
+              })}
               className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.caseNumber ? 'border-red-300' : 'border-gray-300'}`}
             />
-            {errors.caseNumber && <p className="text-xs text-red-600 mt-1">{errors.caseNumber.message}</p>}
+            {errors.caseNumber && (
+              <p className="text-xs text-red-600 mt-1">{errors.caseNumber.message}</p>
+            )}
           </div>
 
-          <button type="submit" disabled={isPending}
-            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={isPending}
+            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+          >
             {isPending ? 'Сохранение...' : mode === 'create' ? 'Добавить' : 'Сохранить'}
           </button>
         </form>

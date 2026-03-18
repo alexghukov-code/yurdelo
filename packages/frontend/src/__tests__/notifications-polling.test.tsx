@@ -45,7 +45,15 @@ describe('useNotifications', () => {
     server.use(
       http.get('/api/v1/notifications', () => {
         return HttpResponse.json({
-          data: [{ id: 'n1', type: 'test', title: 'Hello', isRead: false, createdAt: new Date().toISOString() }],
+          data: [
+            {
+              id: 'n1',
+              type: 'test',
+              title: 'Hello',
+              isRead: false,
+              createdAt: new Date().toISOString(),
+            },
+          ],
           meta: { unreadCount: 1 },
         });
       }),

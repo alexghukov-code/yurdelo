@@ -29,9 +29,9 @@ describe('POST /v1/cases/:caseId/stages', () => {
   it('creates stage (201)', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [{ id: CASES.active.id }], rowCount: 1 }) // ownership
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                        // existing stages
-      .mockResolvedValueOnce({ rows: [STAGES.first], rowCount: 1 })            // INSERT
-      .mockResolvedValueOnce({ rows: [] });                                    // audit_log
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // existing stages
+      .mockResolvedValueOnce({ rows: [STAGES.first], rowCount: 1 }) // INSERT
+      .mockResolvedValueOnce({ rows: [] }); // audit_log
 
     const res = await request(app)
       .post(`/v1/cases/${CASES.active.id}/stages`)
@@ -45,7 +45,7 @@ describe('POST /v1/cases/:caseId/stages', () => {
   it('returns warning when sort_order is not sequential', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [{ id: CASES.active.id }], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [{ sort_order: 3 }], rowCount: 1 })      // existing stage has order 3
+      .mockResolvedValueOnce({ rows: [{ sort_order: 3 }], rowCount: 1 }) // existing stage has order 3
       .mockResolvedValueOnce({ rows: [STAGES.first], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [] });
 
@@ -90,7 +90,7 @@ describe('POST /v1/cases/:caseId/stages', () => {
 describe('PATCH /v1/stages/:id', () => {
   it('admin updates stage', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [STAGES.first], rowCount: 1 })  // lookup
+      .mockResolvedValueOnce({ rows: [STAGES.first], rowCount: 1 }) // lookup
       .mockResolvedValueOnce({ rows: [{ ...STAGES.first, court: 'Новый суд' }], rowCount: 1 });
 
     const res = await request(app)
@@ -104,8 +104,8 @@ describe('PATCH /v1/stages/:id', () => {
 
   it('returns 409 STALE_DATA on optimistic lock conflict', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [STAGES.first], rowCount: 1 })  // lookup
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })              // UPDATE 0 rows
+      .mockResolvedValueOnce({ rows: [STAGES.first], rowCount: 1 }) // lookup
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // UPDATE 0 rows
       .mockResolvedValueOnce({ rows: [{ id: STAGES.first.id }], rowCount: 1 }); // exists
 
     const res = await request(app)
@@ -136,9 +136,9 @@ describe('PATCH /v1/stages/:id', () => {
 describe('DELETE /v1/stages/:id', () => {
   it('admin deletes stage without hearings', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })     // no hearings
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })     // soft delete
-      .mockResolvedValueOnce({ rows: [] });                 // audit_log
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // no hearings
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // soft delete
+      .mockResolvedValueOnce({ rows: [] }); // audit_log
 
     const res = await request(app)
       .delete(`/v1/stages/${STAGES.first.id}`)
@@ -185,9 +185,9 @@ describe('RLS: stages access follows case ownership', () => {
 
   it('admin can POST stage to any case', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                        // existing stages
-      .mockResolvedValueOnce({ rows: [STAGES.first], rowCount: 1 })            // INSERT
-      .mockResolvedValueOnce({ rows: [] });                                    // audit
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // existing stages
+      .mockResolvedValueOnce({ rows: [STAGES.first], rowCount: 1 }) // INSERT
+      .mockResolvedValueOnce({ rows: [] }); // audit
 
     const res = await request(app)
       .post(`/v1/cases/${CASES.active.id}/stages`)

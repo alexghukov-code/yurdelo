@@ -17,8 +17,12 @@ function setup(role: 'admin' | 'lawyer' = 'lawyer') {
     http.get('/api/v1/auth/me', () =>
       HttpResponse.json({
         data: {
-          id: 'u1', email: `${role}@test.ru`, role,
-          firstName: 'Мария', lastName: 'Петрова', twoFaEnabled: false,
+          id: 'u1',
+          email: `${role}@test.ru`,
+          role,
+          firstName: 'Мария',
+          lastName: 'Петрова',
+          twoFaEnabled: false,
         },
       }),
     ),
@@ -37,9 +41,10 @@ function renderForm(props: Partial<React.ComponentProps<typeof CaseForm>> = {}) 
     onCancel,
     ...renderWithProviders(
       <Routes>
-        <Route path="/" element={
-          <CaseForm mode="create" onSubmit={onSubmit} onCancel={onCancel} {...props} />
-        } />
+        <Route
+          path="/"
+          element={<CaseForm mode="create" onSubmit={onSubmit} onCancel={onCancel} {...props} />}
+        />
       </Routes>,
     ),
   };
@@ -68,10 +73,18 @@ describe('CaseForm', () => {
     renderForm({
       mode: 'edit',
       initialData: {
-        id: 'c1', name: 'Дело', category: 'civil',
-        pltId: 'p1', defId: 'p2', lawyerId: 'u1',
-        status: 'active', finalResult: null, claimAmount: 1000,
-        closedAt: null, createdAt: '', updatedAt: '2026-01-01T00:00:00Z',
+        id: 'c1',
+        name: 'Дело',
+        category: 'civil',
+        pltId: 'p1',
+        defId: 'p2',
+        lawyerId: 'u1',
+        status: 'active',
+        finalResult: null,
+        claimAmount: 1000,
+        closedAt: null,
+        createdAt: '',
+        updatedAt: '2026-01-01T00:00:00Z',
       },
     });
 
@@ -101,7 +114,9 @@ describe('CaseForm', () => {
       expect(screen.getByLabelText(/Название дела/)).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText(/Название дела/), { target: { value: 'Тестовое дело' } });
+    fireEvent.change(screen.getByLabelText(/Название дела/), {
+      target: { value: 'Тестовое дело' },
+    });
     fireEvent.click(screen.getByText('Создать'));
 
     await waitFor(() => {
@@ -163,10 +178,18 @@ describe('CaseForm', () => {
     renderForm({
       mode: 'edit',
       initialData: {
-        id: 'c1', name: 'Взыскание', category: 'arbitration',
-        pltId: 'p1', defId: 'p2', lawyerId: 'u1',
-        status: 'active', finalResult: null, claimAmount: 500000,
-        closedAt: null, createdAt: '', updatedAt: '2026-01-01T00:00:00Z',
+        id: 'c1',
+        name: 'Взыскание',
+        category: 'arbitration',
+        pltId: 'p1',
+        defId: 'p2',
+        lawyerId: 'u1',
+        status: 'active',
+        finalResult: null,
+        claimAmount: 500000,
+        closedAt: null,
+        createdAt: '',
+        updatedAt: '2026-01-01T00:00:00Z',
       },
     });
 

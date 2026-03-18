@@ -41,9 +41,13 @@ export async function notify(
      )
      RETURNING id`,
     [
-      params.userId, params.type, params.title,
-      params.message ?? null, params.link ?? null,
-      params.entityType ?? null, entityId,
+      params.userId,
+      params.type,
+      params.title,
+      params.message ?? null,
+      params.link ?? null,
+      params.entityType ?? null,
+      entityId,
     ],
   );
 

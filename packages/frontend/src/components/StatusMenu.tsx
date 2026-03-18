@@ -26,15 +26,15 @@ interface Action {
 
 const ACTIONS_BY_STATUS: Record<string, Action[]> = {
   active: [
-    { label: 'Закрыть дело', status: 'closed', confirm: 'Закрыть дело? Это действие можно отменить.' },
+    {
+      label: 'Закрыть дело',
+      status: 'closed',
+      confirm: 'Закрыть дело? Это действие можно отменить.',
+    },
     { label: 'Приостановить', status: 'suspended', confirm: 'Приостановить дело?' },
   ],
-  closed: [
-    { label: 'Возобновить', status: 'active', confirm: 'Возобновить дело?' },
-  ],
-  suspended: [
-    { label: 'Возобновить', status: 'active', confirm: 'Возобновить дело?' },
-  ],
+  closed: [{ label: 'Возобновить', status: 'active', confirm: 'Возобновить дело?' }],
+  suspended: [{ label: 'Возобновить', status: 'active', confirm: 'Возобновить дело?' }],
 };
 
 export function StatusMenu({ currentStatus, onChangeStatus }: StatusMenuProps) {
@@ -58,7 +58,9 @@ export function StatusMenu({ currentStatus, onChangeStatus }: StatusMenuProps) {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
       >
-        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[currentStatus] ?? ''}`}>
+        <span
+          className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[currentStatus] ?? ''}`}
+        >
           {STATUS_LABELS[currentStatus] ?? currentStatus}
         </span>
         <ChevronDown className="h-3.5 w-3.5 text-gray-500" />

@@ -31,16 +31,27 @@ const RULES: Array<{ match: (method: string, path: string) => boolean; rule: Lim
   },
   {
     match: (m, p) => m === 'POST' && p.includes('/documents'),
-    rule: { max: 10, windowSec: 60, keyPrefix: 'rl:upload', keyFn: (req) => req.user?.id ?? req.ip },
+    rule: {
+      max: 10,
+      windowSec: 60,
+      keyPrefix: 'rl:upload',
+      keyFn: (req) => req.user?.id ?? req.ip,
+    },
   },
 ];
 
 const GLOBAL_RULE: LimitRule = {
-  max: 100, windowSec: 60, keyPrefix: 'rl:global', keyFn: (req) => req.user?.id ?? req.ip,
+  max: 100,
+  windowSec: 60,
+  keyPrefix: 'rl:global',
+  keyFn: (req) => req.user?.id ?? req.ip,
 };
 
 const BURST_RULE: LimitRule = {
-  max: 20, windowSec: 1, keyPrefix: 'rl:burst', keyFn: (req) => req.user?.id ?? req.ip,
+  max: 20,
+  windowSec: 1,
+  keyPrefix: 'rl:burst',
+  keyFn: (req) => req.user?.id ?? req.ip,
 };
 
 export function createRateLimiter(redis: Redis | null): RequestHandler {

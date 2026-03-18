@@ -21,11 +21,7 @@ export async function fetchTransfers(caseId: string) {
   return data.data;
 }
 
-export async function createTransfer(body: {
-  caseId: string;
-  toId: string;
-  comment?: string;
-}) {
+export async function createTransfer(body: { caseId: string; toId: string; comment?: string }) {
   const { data } = await api.post<{ data: Transfer }>('/transfers', body);
   return data.data;
 }

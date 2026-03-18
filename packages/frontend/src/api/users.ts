@@ -40,7 +40,10 @@ export async function fetchUser(id: string) {
   return data.data;
 }
 
-export async function updateUser(id: string, body: Record<string, unknown> & { updatedAt: string }) {
+export async function updateUser(
+  id: string,
+  body: Record<string, unknown> & { updatedAt: string },
+) {
   const { data } = await api.patch<{ data: User }>(`/users/${id}`, body);
   return data.data;
 }
@@ -63,21 +66,27 @@ export async function createUser(body: {
   return data.data;
 }
 
-export async function deactivateUser(id: string, body: {
-  date: string;
-  reason: string;
-  comment?: string;
-  transferToId?: string;
-}) {
+export async function deactivateUser(
+  id: string,
+  body: {
+    date: string;
+    reason: string;
+    comment?: string;
+    transferToId?: string;
+  },
+) {
   const { data } = await api.post<{ data: { message: string } }>(`/users/${id}/deactivate`, body);
   return data.data;
 }
 
-export async function restoreUser(id: string, body: {
-  date: string;
-  role: string;
-  comment?: string;
-}) {
+export async function restoreUser(
+  id: string,
+  body: {
+    date: string;
+    role: string;
+    comment?: string;
+  },
+) {
   const { data } = await api.post<{ data: { message: string } }>(`/users/${id}/restore`, body);
   return data.data;
 }

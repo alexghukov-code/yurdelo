@@ -18,8 +18,12 @@ function renderCaseDetail(caseId: string) {
     http.get('/api/v1/auth/me', () => {
       return HttpResponse.json({
         data: {
-          id: 'u1', email: 'lawyer@test.ru', role: 'lawyer',
-          firstName: 'Мария', lastName: 'Петрова', twoFaEnabled: false,
+          id: 'u1',
+          email: 'lawyer@test.ru',
+          role: 'lawyer',
+          firstName: 'Мария',
+          lastName: 'Петрова',
+          twoFaEnabled: false,
         },
       });
     }),

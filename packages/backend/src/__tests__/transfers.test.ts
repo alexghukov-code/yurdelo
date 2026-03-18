@@ -25,19 +25,23 @@ describe('POST /v1/transfers', () => {
   it('creates transfer atomically (201)', async () => {
     const client = pool._client;
     const transfer = {
-      id: 't1', case_id: CASES.active.id,
-      from_id: USERS.lawyer.id, to_id: LAWYER2_ID,
-      transfer_date: '2026-03-17', comment: null, created_at: NOW,
+      id: 't1',
+      case_id: CASES.active.id,
+      from_id: USERS.lawyer.id,
+      to_id: LAWYER2_ID,
+      transfer_date: '2026-03-17',
+      comment: null,
+      created_at: NOW,
     };
 
     client.query
-      .mockResolvedValueOnce({ rows: [] })                                     // BEGIN
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
       .mockResolvedValueOnce({ rows: [{ id: CASES.active.id, lawyer_id: USERS.lawyer.id }] }) // case
-      .mockResolvedValueOnce({ rows: [{ id: LAWYER2_ID }] })                   // recipient active
-      .mockResolvedValueOnce({ rows: [transfer], rowCount: 1 })                // INSERT transfer
-      .mockResolvedValueOnce({ rows: [] })                                     // UPDATE case
-      .mockResolvedValueOnce({ rows: [] })                                     // audit_log
-      .mockResolvedValueOnce({ rows: [] });                                    // COMMIT
+      .mockResolvedValueOnce({ rows: [{ id: LAWYER2_ID }] }) // recipient active
+      .mockResolvedValueOnce({ rows: [transfer], rowCount: 1 }) // INSERT transfer
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE case
+      .mockResolvedValueOnce({ rows: [] }) // audit_log
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
     const res = await request(app)
       .post('/v1/transfers')
@@ -67,10 +71,10 @@ describe('POST /v1/transfers', () => {
   it('returns 409 on duplicate transfer same day (DB constraint)', async () => {
     const client = pool._client;
     client.query
-      .mockResolvedValueOnce({ rows: [] })                                     // BEGIN
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
       .mockResolvedValueOnce({ rows: [{ id: CASES.active.id, lawyer_id: USERS.lawyer.id }] })
       .mockResolvedValueOnce({ rows: [{ id: LAWYER2_ID }] })
-      .mockRejectedValueOnce({ code: '23505' });                              // unique violation
+      .mockRejectedValueOnce({ code: '23505' }); // unique violation
 
     const res = await request(app)
       .post('/v1/transfers')
@@ -187,12 +191,18 @@ describe('GET /v1/transfers', () => {
 
 describe('GET /v1/transfers/:id', () => {
   const mockTransfer = {
-    id: 't1', case_id: CASES.active.id,
-    from_id: USERS.lawyer.id, to_id: LAWYER2_ID,
-    from_last: 'Петрова', from_first: 'Мария',
-    to_last: 'Сидоров', to_first: 'Дмитрий',
+    id: 't1',
+    case_id: CASES.active.id,
+    from_id: USERS.lawyer.id,
+    to_id: LAWYER2_ID,
+    from_last: 'Петрова',
+    from_first: 'Мария',
+    to_last: 'Сидоров',
+    to_first: 'Дмитрий',
     case_name: CASES.active.name,
-    transfer_date: '2026-03-17', comment: null, created_at: NOW,
+    transfer_date: '2026-03-17',
+    comment: null,
+    created_at: NOW,
   };
 
   it('returns transfer details', async () => {

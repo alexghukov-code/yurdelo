@@ -67,7 +67,9 @@ export function PartiesPage() {
       {data && data.data.length === 0 && (
         <EmptyState
           title="Контрагентов нет"
-          description={debouncedSearch ? `Ничего не найдено по запросу "${debouncedSearch}".` : undefined}
+          description={
+            debouncedSearch ? `Ничего не найдено по запросу "${debouncedSearch}".` : undefined
+          }
         />
       )}
 
@@ -94,14 +96,18 @@ export function PartiesPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         {canEdit && (
-                          <button onClick={() => setEditParty(p)} className="p-1 text-gray-400 hover:text-gray-600">
+                          <button
+                            onClick={() => setEditParty(p)}
+                            className="p-1 text-gray-400 hover:text-gray-600"
+                          >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
                         )}
                         {canDelete && (
                           <button
                             onClick={() => {
-                              if (confirm(`Удалить контрагента «${p.name}»?`)) deleteMut.mutate(p.id);
+                              if (confirm(`Удалить контрагента «${p.name}»?`))
+                                deleteMut.mutate(p.id);
                             }}
                             className="p-1 text-red-400 hover:text-red-600"
                           >
@@ -122,7 +128,10 @@ export function PartiesPage() {
         <PartyModal
           mode="create"
           onClose={() => setShowCreate(false)}
-          onSuccess={() => { setShowCreate(false); qc.invalidateQueries({ queryKey: ['parties'] }); }}
+          onSuccess={() => {
+            setShowCreate(false);
+            qc.invalidateQueries({ queryKey: ['parties'] });
+          }}
         />
       )}
 
@@ -131,7 +140,10 @@ export function PartiesPage() {
           mode="edit"
           party={editParty}
           onClose={() => setEditParty(null)}
-          onSuccess={() => { setEditParty(null); qc.invalidateQueries({ queryKey: ['parties'] }); }}
+          onSuccess={() => {
+            setEditParty(null);
+            qc.invalidateQueries({ queryKey: ['parties'] });
+          }}
         />
       )}
     </div>
@@ -157,7 +169,11 @@ interface PartyFormValues {
 }
 
 function PartyModal({ mode, party, onClose, onSuccess }: PartyModalProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm<PartyFormValues>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PartyFormValues>({
     defaultValues: {
       name: party?.name ?? '',
       inn: party?.inn ?? '',
@@ -170,12 +186,19 @@ function PartyModal({ mode, party, onClose, onSuccess }: PartyModalProps) {
 
   const createMut = useMutation({
     mutationFn: createParty,
-    onSuccess: () => { toast.success('Контрагент создан'); onSuccess(); },
+    onSuccess: () => {
+      toast.success('Контрагент создан');
+      onSuccess();
+    },
   });
 
   const updateMut = useMutation({
-    mutationFn: (body: PartyFormValues) => updateParty(party!.id, { ...body, updatedAt: party!.updatedAt }),
-    onSuccess: () => { toast.success('Контрагент обновлён'); onSuccess(); },
+    mutationFn: (body: PartyFormValues) =>
+      updateParty(party!.id, { ...body, updatedAt: party!.updatedAt }),
+    onSuccess: () => {
+      toast.success('Контрагент обновлён');
+      onSuccess();
+    },
   });
 
   const isPending = createMut.isPending || updateMut.isPending;
@@ -195,42 +218,83 @@ function PartyModal({ mode, party, onClose, onSuccess }: PartyModalProps) {
           <h3 className="text-lg font-semibold">
             {mode === 'create' ? 'Новый контрагент' : 'Редактирование контрагента'}
           </h3>
-          <button onClick={onClose}><X className="h-5 w-5 text-gray-400" /></button>
+          <button onClick={onClose}>
+            <X className="h-5 w-5 text-gray-400" />
+          </button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
           <div>
-            <label htmlFor="pm-name" className="block text-sm font-medium text-gray-700 mb-1">Название</label>
-            <input id="pm-name" {...register('name', { required: 'Обязательно.', minLength: { value: 2, message: 'Минимум 2 символа.' } })}
-              className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.name ? 'border-red-300' : 'border-gray-300'}`} />
+            <label htmlFor="pm-name" className="block text-sm font-medium text-gray-700 mb-1">
+              Название
+            </label>
+            <input
+              id="pm-name"
+              {...register('name', {
+                required: 'Обязательно.',
+                minLength: { value: 2, message: 'Минимум 2 символа.' },
+              })}
+              className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.name ? 'border-red-300' : 'border-gray-300'}`}
+            />
             {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>}
           </div>
           <div>
-            <label htmlFor="pm-inn" className="block text-sm font-medium text-gray-700 mb-1">ИНН</label>
-            <input id="pm-inn" maxLength={12} {...register('inn')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <label htmlFor="pm-inn" className="block text-sm font-medium text-gray-700 mb-1">
+              ИНН
+            </label>
+            <input
+              id="pm-inn"
+              maxLength={12}
+              {...register('inn')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
           </div>
           <div>
-            <label htmlFor="pm-ogrn" className="block text-sm font-medium text-gray-700 mb-1">ОГРН</label>
-            <input id="pm-ogrn" maxLength={15} {...register('ogrn')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <label htmlFor="pm-ogrn" className="block text-sm font-medium text-gray-700 mb-1">
+              ОГРН
+            </label>
+            <input
+              id="pm-ogrn"
+              maxLength={15}
+              {...register('ogrn')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
           </div>
           <div>
-            <label htmlFor="pm-addr" className="block text-sm font-medium text-gray-700 mb-1">Адрес</label>
-            <input id="pm-addr" {...register('address')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <label htmlFor="pm-addr" className="block text-sm font-medium text-gray-700 mb-1">
+              Адрес
+            </label>
+            <input
+              id="pm-addr"
+              {...register('address')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
           </div>
           <div>
-            <label htmlFor="pm-phone" className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
-            <input id="pm-phone" {...register('phone')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <label htmlFor="pm-phone" className="block text-sm font-medium text-gray-700 mb-1">
+              Телефон
+            </label>
+            <input
+              id="pm-phone"
+              {...register('phone')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
           </div>
           <div>
-            <label htmlFor="pm-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input id="pm-email" type="email" {...register('email')}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <label htmlFor="pm-email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              id="pm-email"
+              type="email"
+              {...register('email')}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
           </div>
-          <button type="submit" disabled={isPending}
-            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={isPending}
+            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+          >
             {isPending ? 'Сохранение...' : mode === 'create' ? 'Создать' : 'Сохранить'}
           </button>
         </form>

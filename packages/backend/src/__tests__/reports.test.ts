@@ -3,13 +3,23 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { buildTestApp, USERS, authHeader } from './helpers.js';
 import {
-  _formatLawyerResults, _formatLawyerLoad, _formatFinance,
-  _formatDuration, _formatStaleCase,
-  _emptyResults, _emptyLoad,
-  _RESULTS_SQL, _LOAD_SQL, _STALE_SQL, _FINANCE_SQL,
-  _SUMMARY_SQL, _DURATION_SQL,
-  _MY_LOAD_SQL, _MY_RESULTS_SQL,
-  _CALENDAR_SQL, _CALENDAR_LAWYER_SQL,
+  _formatLawyerResults,
+  _formatLawyerLoad,
+  _formatFinance,
+  _formatDuration,
+  _formatStaleCase,
+  _emptyResults,
+  _emptyLoad,
+  _RESULTS_SQL,
+  _LOAD_SQL,
+  _STALE_SQL,
+  _FINANCE_SQL,
+  _SUMMARY_SQL,
+  _DURATION_SQL,
+  _MY_LOAD_SQL,
+  _MY_RESULTS_SQL,
+  _CALENDAR_SQL,
+  _CALENDAR_LAWYER_SQL,
 } from '../routes/reports.js';
 
 let app: Express;
@@ -28,48 +38,84 @@ beforeEach(() => {
 describe('win_rate formula correctness', () => {
   it('10 wins / (10+5 losses) = 66.7%', () => {
     const r = _formatLawyerResults({
-      id: '1', last_name: 'T', first_name: 'T',
-      wins: 10, losses: 5, partial: 2, decided: 17, win_rate: '66.7',
+      id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      wins: 10,
+      losses: 5,
+      partial: 2,
+      decided: 17,
+      win_rate: '66.7',
     });
     expect(r.winRate).toBe(66.7);
   });
 
   it('0 wins + 0 losses → null (no divisor)', () => {
     const r = _formatLawyerResults({
-      id: '1', last_name: 'T', first_name: 'T',
-      wins: 0, losses: 0, partial: 0, decided: 0, win_rate: null,
+      id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      wins: 0,
+      losses: 0,
+      partial: 0,
+      decided: 0,
+      win_rate: null,
     });
     expect(r.winRate).toBeNull();
   });
 
   it('all wins → 100%', () => {
     const r = _formatLawyerResults({
-      id: '1', last_name: 'T', first_name: 'T',
-      wins: 7, losses: 0, partial: 0, decided: 7, win_rate: '100.0',
+      id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      wins: 7,
+      losses: 0,
+      partial: 0,
+      decided: 7,
+      win_rate: '100.0',
     });
     expect(r.winRate).toBe(100);
   });
 
   it('all losses → 0%', () => {
     const r = _formatLawyerResults({
-      id: '1', last_name: 'T', first_name: 'T',
-      wins: 0, losses: 3, partial: 0, decided: 3, win_rate: '0.0',
+      id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      wins: 0,
+      losses: 3,
+      partial: 0,
+      decided: 3,
+      win_rate: '0.0',
     });
     expect(r.winRate).toBe(0);
   });
 
   it('1 win + 0 losses → 100% (edge: single case)', () => {
     const r = _formatLawyerResults({
-      id: '1', last_name: 'T', first_name: 'T',
-      wins: 1, losses: 0, partial: 0, decided: 1, win_rate: '100.0',
+      id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      wins: 1,
+      losses: 0,
+      partial: 0,
+      decided: 1,
+      win_rate: '100.0',
     });
     expect(r.winRate).toBe(100);
   });
 
   it('only "part" results → null (part excluded from win/lose)', () => {
     const r = _formatLawyerResults({
-      id: '1', last_name: 'T', first_name: 'T',
-      wins: 0, losses: 0, partial: 5, decided: 5, win_rate: null,
+      id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      wins: 0,
+      losses: 0,
+      partial: 5,
+      decided: 5,
+      win_rate: null,
     });
     expect(r.winRate).toBeNull();
     expect(r.decided).toBe(5);
@@ -78,16 +124,28 @@ describe('win_rate formula correctness', () => {
   it('only "world" results → null (world excluded from win/lose)', () => {
     // world cases have final_result set but are neither win nor lose
     const r = _formatLawyerResults({
-      id: '1', last_name: 'T', first_name: 'T',
-      wins: 0, losses: 0, partial: 0, decided: 3, win_rate: null,
+      id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      wins: 0,
+      losses: 0,
+      partial: 0,
+      decided: 3,
+      win_rate: null,
     });
     expect(r.winRate).toBeNull();
   });
 
   it('winRate returned as number, not string', () => {
     const r = _formatLawyerResults({
-      id: '1', last_name: 'T', first_name: 'T',
-      wins: 1, losses: 2, partial: 0, decided: 3, win_rate: '33.3',
+      id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      wins: 1,
+      losses: 2,
+      partial: 0,
+      decided: 3,
+      win_rate: '33.3',
     });
     expect(typeof r.winRate).toBe('number');
     expect(r.winRate).toBe(33.3);
@@ -113,7 +171,11 @@ describe('duration formula: GREATEST protects against negative days', () => {
 
   it('formatDuration handles zero days', () => {
     const r = _formatDuration({
-      category: 'civil', closed_count: 1, avg_days: 0, min_days: 0, max_days: 0,
+      category: 'civil',
+      closed_count: 1,
+      avg_days: 0,
+      min_days: 0,
+      max_days: 0,
     });
     expect(r.avgDays).toBe(0);
     expect(r.minDays).toBe(0);
@@ -123,10 +185,14 @@ describe('duration formula: GREATEST protects against negative days', () => {
 describe('finance formula', () => {
   it('parses numeric strings to numbers', () => {
     const r = _formatFinance({
-      id: '1', last_name: 'T', first_name: 'T',
-      active_amount: '1500000.50', closed_amount: '0', total_amount: '1500000.50',
+      id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      active_amount: '1500000.50',
+      closed_amount: '0',
+      total_amount: '1500000.50',
     });
-    expect(r.activeAmount).toBe(1500000.50);
+    expect(r.activeAmount).toBe(1500000.5);
     expect(r.closedAmount).toBe(0);
     expect(typeof r.totalAmount).toBe('number');
   });
@@ -135,9 +201,14 @@ describe('finance formula', () => {
 describe('stale formula', () => {
   it('daysInactive can be null (no hearings at all)', () => {
     const r = _formatStaleCase({
-      id: 'c1', name: 'Case', status: 'active', lawyer_id: '1',
-      last_name: 'T', first_name: 'T',
-      last_hearing: null, days_inactive: null,
+      id: 'c1',
+      name: 'Case',
+      status: 'active',
+      lawyer_id: '1',
+      last_name: 'T',
+      first_name: 'T',
+      last_hearing: null,
+      days_inactive: null,
     });
     expect(r.daysInactive).toBeNull();
     expect(r.lastHearing).toBeNull();
@@ -220,10 +291,10 @@ describe('no N+1: each tab = exactly 1 query', () => {
   it('my: exactly 2 parallel queries (load + results)', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [{ active_cases: 0, closed_cases: 0, total_cases: 0 }] })
-      .mockResolvedValueOnce({ rows: [{ wins: 0, losses: 0, partial: 0, decided: 0, win_rate: null }] });
-    await request(app)
-      .get('/v1/reports/my')
-      .set('Authorization', authHeader(USERS.lawyer));
+      .mockResolvedValueOnce({
+        rows: [{ wins: 0, losses: 0, partial: 0, decided: 0, win_rate: null }],
+      });
+    await request(app).get('/v1/reports/my').set('Authorization', authHeader(USERS.lawyer));
     expect(pool.query).toHaveBeenCalledTimes(2);
   });
 
@@ -281,7 +352,16 @@ describe('SQL structure: aggregation in single pass, no subselects', () => {
 describe('GET /v1/reports/manager', () => {
   it('tab=load returns formatted data', async () => {
     pool.query.mockResolvedValueOnce({
-      rows: [{ id: '1', last_name: 'P', first_name: 'M', active_cases: 5, closed_cases: 3, total_cases: 8 }],
+      rows: [
+        {
+          id: '1',
+          last_name: 'P',
+          first_name: 'M',
+          active_cases: 5,
+          closed_cases: 3,
+          total_cases: 8,
+        },
+      ],
     });
     const res = await request(app)
       .get('/v1/reports/manager?tab=load')
@@ -292,7 +372,18 @@ describe('GET /v1/reports/manager', () => {
 
   it('tab=results returns winRate as number', async () => {
     pool.query.mockResolvedValueOnce({
-      rows: [{ id: '1', last_name: 'P', first_name: 'M', wins: 4, losses: 1, partial: 1, decided: 6, win_rate: '80.0' }],
+      rows: [
+        {
+          id: '1',
+          last_name: 'P',
+          first_name: 'M',
+          wins: 4,
+          losses: 1,
+          partial: 1,
+          decided: 6,
+          win_rate: '80.0',
+        },
+      ],
     });
     const res = await request(app)
       .get('/v1/reports/manager?tab=results')
@@ -303,7 +394,18 @@ describe('GET /v1/reports/manager', () => {
 
   it('tab=stale handles null days_inactive (no hearings)', async () => {
     pool.query.mockResolvedValueOnce({
-      rows: [{ id: 'c1', name: 'Case', status: 'active', lawyer_id: '1', last_name: 'P', first_name: 'M', last_hearing: null, days_inactive: null }],
+      rows: [
+        {
+          id: 'c1',
+          name: 'Case',
+          status: 'active',
+          lawyer_id: '1',
+          last_name: 'P',
+          first_name: 'M',
+          last_hearing: null,
+          days_inactive: null,
+        },
+      ],
     });
     const res = await request(app)
       .get('/v1/reports/manager?tab=stale')
@@ -321,7 +423,16 @@ describe('GET /v1/reports/manager', () => {
 
   it('tab=finance parses amounts as numbers', async () => {
     pool.query.mockResolvedValueOnce({
-      rows: [{ id: '1', last_name: 'P', first_name: 'M', active_amount: '1500000', closed_amount: '500000', total_amount: '2000000' }],
+      rows: [
+        {
+          id: '1',
+          last_name: 'P',
+          first_name: 'M',
+          active_amount: '1500000',
+          closed_amount: '500000',
+          total_amount: '2000000',
+        },
+      ],
     });
     const res = await request(app)
       .get('/v1/reports/manager?tab=finance')
@@ -372,7 +483,9 @@ describe('GET /v1/reports/my', () => {
   it('returns load + results for current user', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [{ active_cases: 3, closed_cases: 2, total_cases: 5 }] })
-      .mockResolvedValueOnce({ rows: [{ wins: 2, losses: 0, partial: 0, decided: 2, win_rate: '100.0' }] });
+      .mockResolvedValueOnce({
+        rows: [{ wins: 2, losses: 0, partial: 0, decided: 2, win_rate: '100.0' }],
+      });
     const res = await request(app)
       .get('/v1/reports/my')
       .set('Authorization', authHeader(USERS.lawyer));
@@ -392,10 +505,10 @@ describe('GET /v1/reports/my', () => {
   it('passes userId to both queries', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [{ active_cases: 0, closed_cases: 0, total_cases: 0 }] })
-      .mockResolvedValueOnce({ rows: [{ wins: 0, losses: 0, partial: 0, decided: 0, win_rate: null }] });
-    await request(app)
-      .get('/v1/reports/my')
-      .set('Authorization', authHeader(USERS.lawyer));
+      .mockResolvedValueOnce({
+        rows: [{ wins: 0, losses: 0, partial: 0, decided: 0, win_rate: null }],
+      });
+    await request(app).get('/v1/reports/my').set('Authorization', authHeader(USERS.lawyer));
     // Both queries should receive the lawyer's userId
     const calls = pool.query.mock.calls;
     expect(calls[0][1]).toEqual([USERS.lawyer.id]);
@@ -416,10 +529,11 @@ describe('GET /v1/reports/calendar', () => {
     await request(app)
       .get('/v1/reports/calendar?year=2026&month=4')
       .set('Authorization', authHeader(USERS.lawyer));
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('lawyer_id'),
-      [2026, 4, USERS.lawyer.id],
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('lawyer_id'), [
+      2026,
+      4,
+      USERS.lawyer.id,
+    ]);
   });
 
   it('admin query has 2 params (year, month)', async () => {

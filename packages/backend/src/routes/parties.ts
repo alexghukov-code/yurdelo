@@ -43,10 +43,7 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
          LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
         [...params, limit, offset],
       ),
-      db.query(
-        `SELECT count(*)::int AS total FROM parties p ${where}`,
-        params,
-      ),
+      db.query(`SELECT count(*)::int AS total FROM parties p ${where}`, params),
     ]);
 
     const total = countRows[0]?.total ?? 0;
@@ -78,8 +75,12 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
-        body.name, body.inn ?? null, body.ogrn ?? null,
-        body.address ?? null, body.phone ?? null, body.email ?? null,
+        body.name,
+        body.inn ?? null,
+        body.ogrn ?? null,
+        body.address ?? null,
+        body.phone ?? null,
+        body.email ?? null,
       ],
     );
 
@@ -121,7 +122,10 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
       data: {
         ...formatParty(rows[0]),
         cases: cases.map((c: any) => ({
-          id: c.id, name: c.name, status: c.status, category: c.category,
+          id: c.id,
+          name: c.name,
+          status: c.status,
+          category: c.category,
         })),
       },
     });
@@ -133,8 +137,12 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
     const body = validate(updatePartySchema, req.body);
 
     const map: Record<string, string> = {
-      name: 'name', inn: 'inn', ogrn: 'ogrn',
-      address: 'address', phone: 'phone', email: 'email',
+      name: 'name',
+      inn: 'inn',
+      ogrn: 'ogrn',
+      address: 'address',
+      phone: 'phone',
+      email: 'email',
     };
     const sets: string[] = [];
     const vals: unknown[] = [];
@@ -184,9 +192,7 @@ export function partiesRouter(deps: { db: Pool; redis: Redis }) {
       [req.params.id],
     );
     if (activeCases[0].count > 0) {
-      throw AppError.conflict(
-        `Контрагент используется в ${activeCases[0].count} активных делах.`,
-      );
+      throw AppError.conflict(`Контрагент используется в ${activeCases[0].count} активных делах.`);
     }
 
     const { rowCount } = await db.query(

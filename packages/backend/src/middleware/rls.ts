@@ -81,10 +81,10 @@ async function setRlsContext(client: PoolClient, userId: string, role: string) {
 }
 
 async function resetRlsContext(client: PoolClient) {
-  await client.query(`RESET app.current_user_id`).catch(() =>
-    client.query(`SELECT set_config('app.current_user_id', '', false)`),
-  );
-  await client.query(`RESET app.current_user_role`).catch(() =>
-    client.query(`SELECT set_config('app.current_user_role', '', false)`),
-  );
+  await client
+    .query(`RESET app.current_user_id`)
+    .catch(() => client.query(`SELECT set_config('app.current_user_id', '', false)`));
+  await client
+    .query(`RESET app.current_user_role`)
+    .catch(() => client.query(`SELECT set_config('app.current_user_role', '', false)`));
 }

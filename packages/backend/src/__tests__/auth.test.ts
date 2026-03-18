@@ -85,9 +85,7 @@ describe('POST /v1/auth/login', () => {
   });
 
   it('returns 400 VALIDATION_ERROR when email is missing', async () => {
-    const res = await request(app)
-      .post('/v1/auth/login')
-      .send({ password: TEST_PASSWORD });
+    const res = await request(app).post('/v1/auth/login').send({ password: TEST_PASSWORD });
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
@@ -138,9 +136,12 @@ describe('POST /v1/auth/login', () => {
   });
 
   it('returns 401 when 2FA required but totp_code not provided', async () => {
-    const user2fa = { ...USERS.lawyer, two_fa_enabled: true, two_fa_secret: authenticator.generateSecret() };
-    pool.query
-      .mockResolvedValueOnce({ rows: [user2fa], rowCount: 1 });
+    const user2fa = {
+      ...USERS.lawyer,
+      two_fa_enabled: true,
+      two_fa_secret: authenticator.generateSecret(),
+    };
+    pool.query.mockResolvedValueOnce({ rows: [user2fa], rowCount: 1 });
 
     const res = await request(app)
       .post('/v1/auth/login')
@@ -234,7 +235,7 @@ describe('POST /v1/auth/refresh', () => {
     // Cookie with default path=/ is sent on ANY request path.
     pool.query
       .mockResolvedValueOnce({ rows: [USERS.admin], rowCount: 1 }) // login SELECT
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 });           // login auth_events
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }); // login auth_events
 
     const loginRes = await request(app)
       .post('/v1/auth/login')
@@ -254,9 +255,7 @@ describe('POST /v1/auth/refresh', () => {
       rowCount: 1,
     });
 
-    const refreshRes = await request(app)
-      .post('/v1/auth/refresh')
-      .set('Cookie', cookieValue);
+    const refreshRes = await request(app).post('/v1/auth/refresh').set('Cookie', cookieValue);
 
     expect(refreshRes.status).toBe(200);
     expect(refreshRes.body.data.accessToken).toBeDefined();
@@ -317,9 +316,10 @@ describe('Full auth cycle: login → refresh → logout', () => {
 
     // Extract refresh cookie
     const cookies = loginRes.headers['set-cookie'];
-    const cookieStr = (Array.isArray(cookies)
-      ? cookies.find((c: string) => c.startsWith('refresh_token='))!
-      : cookies
+    const cookieStr = (
+      Array.isArray(cookies)
+        ? cookies.find((c: string) => c.startsWith('refresh_token='))!
+        : cookies
     ).split(';')[0];
     expect(cookieStr).toContain('refresh_token=');
 
@@ -329,9 +329,7 @@ describe('Full auth cycle: login → refresh → logout', () => {
       rowCount: 1,
     });
 
-    const refreshRes = await request(app)
-      .post('/v1/auth/refresh')
-      .set('Cookie', cookieStr);
+    const refreshRes = await request(app).post('/v1/auth/refresh').set('Cookie', cookieStr);
 
     expect(refreshRes.status).toBe(200);
     const secondAccessToken = refreshRes.body.data.accessToken;
@@ -360,9 +358,7 @@ describe('Full auth cycle: login → refresh → logout', () => {
     expect(logoutRes.status).toBe(200);
 
     // ── Step 5: Refresh after logout — must fail ───────
-    const postLogoutRefresh = await request(app)
-      .post('/v1/auth/refresh')
-      .set('Cookie', cookieStr);
+    const postLogoutRefresh = await request(app).post('/v1/auth/refresh').set('Cookie', cookieStr);
 
     expect(postLogoutRefresh.status).toBe(401);
     expect(postLogoutRefresh.body.error.message).toContain('отозван');
@@ -509,9 +505,7 @@ describe('POST /v1/auth/2fa/verify', () => {
   });
 
   it('returns 401 when not authenticated', async () => {
-    const res = await request(app)
-      .post('/v1/auth/2fa/verify')
-      .send({ code: '123456' });
+    const res = await request(app).post('/v1/auth/2fa/verify').send({ code: '123456' });
     expect(res.status).toBe(401);
   });
 
@@ -547,9 +541,7 @@ describe('GET /v1/auth/me', () => {
   it('returns current user profile', async () => {
     pool.query.mockResolvedValueOnce({ rows: [USERS.admin], rowCount: 1 });
 
-    const res = await request(app)
-      .get('/v1/auth/me')
-      .set('Authorization', authHeader(USERS.admin));
+    const res = await request(app).get('/v1/auth/me').set('Authorization', authHeader(USERS.admin));
 
     expect(res.status).toBe(200);
     expect(res.body.data.id).toBe(USERS.admin.id);
@@ -562,9 +554,7 @@ describe('GET /v1/auth/me', () => {
   it('does not expose password_hash or two_fa_secret', async () => {
     pool.query.mockResolvedValueOnce({ rows: [USERS.admin], rowCount: 1 });
 
-    const res = await request(app)
-      .get('/v1/auth/me')
-      .set('Authorization', authHeader(USERS.admin));
+    const res = await request(app).get('/v1/auth/me').set('Authorization', authHeader(USERS.admin));
 
     expect(res.body.data.password_hash).toBeUndefined();
     expect(res.body.data.passwordHash).toBeUndefined();

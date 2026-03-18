@@ -12,11 +12,7 @@ export function AppShell() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar
-        role={user.role}
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+      <Sidebar role={user.role} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar

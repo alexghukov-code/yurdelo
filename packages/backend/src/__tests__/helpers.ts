@@ -114,8 +114,11 @@ export function buildTestApp() {
   const pool = createMockPool();
   const redis = createMockRedis();
   const { app } = createApp({
-    db: pool, redis, emailQueue: null,
-    disableRateLimit: true, disableApiLogger: true,
+    db: pool,
+    redis,
+    emailQueue: null,
+    disableRateLimit: true,
+    disableApiLogger: true,
   });
   return { app, pool, redis };
 }
@@ -131,14 +134,21 @@ export const CASES = {
   active: {
     id: 'd0000000-0000-0000-0000-000000000001',
     name: 'Взыскание задолженности',
-    plt_id: PARTIES.plaintiff.id, def_id: PARTIES.defendant.id,
-    plt_name: PARTIES.plaintiff.name, def_name: PARTIES.defendant.name,
+    plt_id: PARTIES.plaintiff.id,
+    def_id: PARTIES.defendant.id,
+    plt_name: PARTIES.plaintiff.name,
+    def_name: PARTIES.defendant.name,
     lawyer_id: USERS.lawyer.id,
-    lawyer_last: USERS.lawyer.last_name, lawyer_first: USERS.lawyer.first_name,
-    category: 'arbitration', status: 'active',
-    final_result: null, claim_amount: 1500000,
-    closed_at: null, deleted_at: null,
-    created_at: NOW, updated_at: NOW,
+    lawyer_last: USERS.lawyer.last_name,
+    lawyer_first: USERS.lawyer.first_name,
+    category: 'arbitration',
+    status: 'active',
+    final_result: null,
+    claim_amount: 1500000,
+    closed_at: null,
+    deleted_at: null,
+    created_at: NOW,
+    updated_at: NOW,
   },
 };
 
@@ -147,11 +157,15 @@ export const STAGES = {
     id: 'e0000000-0000-0000-0000-000000000001',
     case_id: CASES.active.id,
     stage_type_id: 'a0000000-0000-0000-0000-000000000002',
-    stage_type_name: '1-я инстанция', type_sort_order: 2,
-    sort_order: 2, court: 'Арбитражный суд г. Москвы',
+    stage_type_name: '1-я инстанция',
+    type_sort_order: 2,
+    sort_order: 2,
+    court: 'Арбитражный суд г. Москвы',
     case_number: 'А40-12345/2025',
     lawyer_id: USERS.lawyer.id,
-    deleted_at: null, created_at: NOW, updated_at: NOW,
+    deleted_at: null,
+    created_at: NOW,
+    updated_at: NOW,
   },
 };
 
@@ -159,11 +173,18 @@ export const HEARINGS = {
   scheduled: {
     id: 'f0000000-0000-0000-0000-000000000001',
     stage_id: STAGES.first.id,
-    type: 'hearing', datetime: '2026-04-15T10:00:00+03:00',
-    result: null, appealed: null,
-    new_datetime: null, adj_reason: null, notes: null,
-    lawyer_id: USERS.lawyer.id, case_id: CASES.active.id,
-    deleted_at: null, created_at: NOW, updated_at: NOW,
+    type: 'hearing',
+    datetime: '2026-04-15T10:00:00+03:00',
+    result: null,
+    appealed: null,
+    new_datetime: null,
+    adj_reason: null,
+    notes: null,
+    lawyer_id: USERS.lawyer.id,
+    case_id: CASES.active.id,
+    deleted_at: null,
+    created_at: NOW,
+    updated_at: NOW,
   },
 };
 

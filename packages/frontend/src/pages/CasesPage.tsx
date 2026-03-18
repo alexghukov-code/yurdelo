@@ -7,7 +7,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { EmptyState } from '../components/EmptyState';
 import { QueryErrorView } from '../components/QueryErrorView';
-import { CaseForm, type CaseFormValues } from '../components/CaseForm';
+import { CaseForm } from '../components/CaseForm';
 
 export function CasesPage() {
   const [page, setPage] = useState(1);

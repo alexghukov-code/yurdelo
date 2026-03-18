@@ -128,7 +128,7 @@ describe('PATCH /v1/hearings/:id', () => {
   it('returns 409 on optimistic lock conflict', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [HEARINGS.scheduled], rowCount: 1 }) // lookup
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                  // UPDATE 0
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // UPDATE 0
       .mockResolvedValueOnce({ rows: [{ id: HEARINGS.scheduled.id }], rowCount: 1 }); // exists
 
     const res = await request(app)
@@ -160,11 +160,11 @@ describe('DELETE /v1/hearings/:id', () => {
   it('admin soft-deletes hearing and marks documents', async () => {
     const client = pool._client;
     client.query
-      .mockResolvedValueOnce({ rows: [] })                    // BEGIN
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })       // soft delete hearing
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })       // mark documents
-      .mockResolvedValueOnce({ rows: [] })                    // audit_log
-      .mockResolvedValueOnce({ rows: [] });                   // COMMIT
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // soft delete hearing
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // mark documents
+      .mockResolvedValueOnce({ rows: [] }) // audit_log
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
     const res = await request(app)
       .delete(`/v1/hearings/${HEARINGS.scheduled.id}`)

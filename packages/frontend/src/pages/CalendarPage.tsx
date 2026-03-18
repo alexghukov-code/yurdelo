@@ -14,7 +14,13 @@ export function CalendarPage() {
   const year = current.getFullYear();
   const month = current.getMonth() + 1;
 
-  const { data: events = [], isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: events = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['calendar', year, month],
     queryFn: () => fetchCalendar(year, month),
   });
@@ -33,13 +39,19 @@ export function CalendarPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Календарь</h1>
         <div className="flex items-center gap-3">
-          <button onClick={() => setCurrent(new Date(year, month - 2, 1))} className="p-1.5 hover:bg-gray-100 rounded">
+          <button
+            onClick={() => setCurrent(new Date(year, month - 2, 1))}
+            className="p-1.5 hover:bg-gray-100 rounded"
+          >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <span className="text-sm font-medium w-36 text-center">
             {format(current, 'LLLL yyyy', { locale: ru })}
           </span>
-          <button onClick={() => setCurrent(new Date(year, month, 1))} className="p-1.5 hover:bg-gray-100 rounded">
+          <button
+            onClick={() => setCurrent(new Date(year, month, 1))}
+            className="p-1.5 hover:bg-gray-100 rounded"
+          >
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
@@ -75,7 +87,9 @@ export function CalendarPage() {
                   key={day.toISOString()}
                   className={`h-24 border-b border-r p-1 ${isToday ? 'bg-blue-50' : ''}`}
                 >
-                  <span className={`text-xs font-medium ${isToday ? 'text-blue-600' : 'text-gray-500'}`}>
+                  <span
+                    className={`text-xs font-medium ${isToday ? 'text-blue-600' : 'text-gray-500'}`}
+                  >
                     {format(day, 'd')}
                   </span>
                   <div className="mt-0.5 space-y-0.5 overflow-hidden">

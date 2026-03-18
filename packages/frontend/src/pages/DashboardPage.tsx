@@ -12,13 +12,25 @@ import { Briefcase, TrendingUp, AlertTriangle } from 'lucide-react';
 export function DashboardPage() {
   const { user } = useAuth();
 
-  const { data: casesData, isLoading: casesLoading, isError: casesError, error: casesErr, refetch: casesRefetch } = useQuery({
+  const {
+    data: casesData,
+    isLoading: casesLoading,
+    isError: casesError,
+    error: casesErr,
+    refetch: casesRefetch,
+  } = useQuery({
     queryKey: ['dashboard', 'recent-cases'],
     queryFn: () => fetchCases({ page: 1, limit: 5 }),
     staleTime: 60_000,
   });
 
-  const { data: report, isLoading: reportLoading, isError: reportError, error: reportErr, refetch: reportRefetch } = useQuery({
+  const {
+    data: report,
+    isLoading: reportLoading,
+    isError: reportError,
+    error: reportErr,
+    refetch: reportRefetch,
+  } = useQuery({
     queryKey: ['reports', 'my'],
     queryFn: fetchMyReport,
     enabled: !!user && can(user.role, 'report:view'),
@@ -33,9 +45,7 @@ export function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
-        Добро пожаловать, {user?.firstName}
-      </h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Добро пожаловать, {user?.firstName}</h1>
 
       {load && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -72,7 +82,10 @@ export function DashboardPage() {
               {casesData?.data.map((c) => (
                 <tr key={c.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
-                    <Link to={`/cases/${c.id}`} className="font-medium text-blue-600 hover:text-blue-800">
+                    <Link
+                      to={`/cases/${c.id}`}
+                      className="font-medium text-blue-600 hover:text-blue-800"
+                    >
                       {c.name}
                     </Link>
                   </td>
@@ -131,7 +144,9 @@ function StatusBadge({ status }: { status: string }) {
     suspended: 'Приостановлено',
   };
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${map[status] ?? map.active}`}>
+    <span
+      className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${map[status] ?? map.active}`}
+    >
       {labels[status] ?? status}
     </span>
   );

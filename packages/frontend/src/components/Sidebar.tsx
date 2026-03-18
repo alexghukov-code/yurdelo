@@ -1,8 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import {
-  Briefcase, Users, Calendar, BarChart3, Scale, UserCog, X,
-} from 'lucide-react';
+import { Briefcase, Users, Calendar, BarChart3, Scale, UserCog, X } from 'lucide-react';
 import { can, type Permission } from '../lib/permissions';
 
 const NAV: Array<{ to: string; label: string; icon: React.ElementType; allow: Permission }> = [
@@ -25,7 +23,7 @@ export function Sidebar({ role, open, onClose }: SidebarProps) {
   // Close drawer on navigation
   useEffect(() => {
     onClose();
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.pathname]); // eslint-disable-line
 
   const nav = (
     <>
@@ -64,9 +62,7 @@ export function Sidebar({ role, open, onClose }: SidebarProps) {
   return (
     <>
       {/* Desktop: static sidebar */}
-      <aside className="hidden md:flex w-56 bg-white border-r flex-col">
-        {nav}
-      </aside>
+      <aside className="hidden md:flex w-56 bg-white border-r flex-col">{nav}</aside>
 
       {/* Mobile: drawer overlay */}
       {open && (

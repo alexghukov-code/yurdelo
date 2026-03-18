@@ -24,9 +24,7 @@ function renderApp(route: string, ui: React.ReactElement) {
   return renderWithProviders(
     <Routes>
       <Route element={<ProtectedRoute />}>
-        <Route element={<AppShell />}>
-          {ui}
-        </Route>
+        <Route element={<AppShell />}>{ui}</Route>
       </Route>
     </Routes>,
     { route },
@@ -40,9 +38,7 @@ describe('Viewer flows', () => {
   });
 
   it('does not see create case button', async () => {
-    server.use(
-      http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)),
-    );
+    server.use(http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)));
 
     renderApp('/cases', <Route path="cases" element={<CasesPage />} />);
 
@@ -51,14 +47,14 @@ describe('Viewer flows', () => {
     });
     // The + Дело button should not exist for viewer
     const buttons = screen.queryAllByRole('button');
-    const createBtn = buttons.find((b) => b.textContent?.includes('Дело') && b.textContent?.includes('+'));
+    const createBtn = buttons.find(
+      (b) => b.textContent?.includes('Дело') && b.textContent?.includes('+'),
+    );
     expect(createBtn).toBeUndefined();
   });
 
   it('does not see Reports or Users in sidebar', async () => {
-    server.use(
-      http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)),
-    );
+    server.use(http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)));
 
     renderApp('/cases', <Route path="cases" element={<CasesPage />} />);
 
@@ -100,11 +96,12 @@ describe('Viewer flows', () => {
   });
 
   it('blocked from /cases/new by route guard', async () => {
-    renderApp('/cases/new', (
+    renderApp(
+      '/cases/new',
       <Route path="cases/new" element={<ProtectedRoute roles={['admin', 'lawyer']} />}>
         <Route index element={<CaseCreatePage />} />
-      </Route>
-    ));
+      </Route>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Нет доступа')).toBeInTheDocument();
@@ -112,11 +109,12 @@ describe('Viewer flows', () => {
   });
 
   it('blocked from /reports by route guard', async () => {
-    renderApp('/reports', (
+    renderApp(
+      '/reports',
       <Route path="reports" element={<ProtectedRoute roles={['admin', 'lawyer']} />}>
         <Route index element={<ReportsPage />} />
-      </Route>
-    ));
+      </Route>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Нет доступа')).toBeInTheDocument();

@@ -160,17 +160,16 @@ export const createHearingSchema = z
     path: ['appealed'],
   });
 
-export const updateHearingSchema = z
-  .object({
-    type: hearingTypeEnum.optional(),
-    datetime: z.string().optional(),
-    result: finalResultEnum.nullable().optional(),
-    appealed: z.boolean().nullable().optional(),
-    newDatetime: z.string().nullable().optional(),
-    adjReason: z.string().max(200).nullable().optional(),
-    notes: z.string().nullable().optional(),
-    updatedAt: z.string({ required_error: 'updatedAt обязателен.' }),
-  });
+export const updateHearingSchema = z.object({
+  type: hearingTypeEnum.optional(),
+  datetime: z.string().optional(),
+  result: finalResultEnum.nullable().optional(),
+  appealed: z.boolean().nullable().optional(),
+  newDatetime: z.string().nullable().optional(),
+  adjReason: z.string().max(200).nullable().optional(),
+  notes: z.string().nullable().optional(),
+  updatedAt: z.string({ required_error: 'updatedAt обязателен.' }),
+});
 
 // ── Transfers ─────────────────────────────────────────
 

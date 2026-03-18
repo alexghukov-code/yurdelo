@@ -65,7 +65,9 @@ describe('Backend config: DATABASE_URL', () => {
 
   it('docker-compose.yml overrides DATABASE_URL to @postgres hostname', () => {
     const compose = readFile('infra/docker-compose.yml');
-    expect(compose).toContain('DATABASE_URL: postgres://app_user:app_password@postgres:5432/yurdelo');
+    expect(compose).toContain(
+      'DATABASE_URL: postgres://app_user:app_password@postgres:5432/yurdelo',
+    );
   });
 });
 
@@ -376,8 +378,15 @@ describe('.env.example', () => {
 
   it('has all required env vars', () => {
     const required = [
-      'DATABASE_URL', 'MIGRATION_DATABASE_URL', 'REDIS_HOST', 'REDIS_PORT',
-      'JWT_SECRET', 'S3_ENDPOINT', 'S3_BUCKET', 'PORT', 'NODE_ENV',
+      'DATABASE_URL',
+      'MIGRATION_DATABASE_URL',
+      'REDIS_HOST',
+      'REDIS_PORT',
+      'JWT_SECRET',
+      'S3_ENDPOINT',
+      'S3_BUCKET',
+      'PORT',
+      'NODE_ENV',
     ];
     for (const key of required) {
       expect(env).toContain(key);
@@ -531,7 +540,8 @@ describe('Deploy workflow: rollback', () => {
   });
 
   it('staging rollback runs migration down (automated)', () => {
-    const rollbackSection = deploy.split('rollback-staging:')[1]?.split(/^\s{2}rollback-production:/m)[0] ?? '';
+    const rollbackSection =
+      deploy.split('rollback-staging:')[1]?.split(/^\s{2}rollback-production:/m)[0] ?? '';
     expect(rollbackSection).toContain('node-pg-migrate down');
   });
 

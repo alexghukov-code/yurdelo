@@ -32,7 +32,9 @@ export function reportsRouter(deps: { db: Pool; redis: Redis }) {
         return res.json({ data: rows.map(formatFinance) });
       }
       default:
-        throw AppError.badRequest(`Неизвестный tab: ${tab}. Допустимые: load, results, stale, finance.`);
+        throw AppError.badRequest(
+          `Неизвестный tab: ${tab}. Допустимые: load, results, stale, finance.`,
+        );
     }
   });
 
@@ -57,7 +59,9 @@ export function reportsRouter(deps: { db: Pool; redis: Redis }) {
         return res.json({ data: rows.map(formatInstances) });
       }
       default:
-        throw AppError.badRequest(`Неизвестный tab: ${tab}. Допустимые: summary, duration, instances.`);
+        throw AppError.badRequest(
+          `Неизвестный tab: ${tab}. Допустимые: summary, duration, instances.`,
+        );
     }
   });
 
@@ -247,53 +251,78 @@ const CALENDAR_LAWYER_SQL = `
 
 function formatLawyerLoad(r: any) {
   return {
-    id: r.id, lastName: r.last_name, firstName: r.first_name,
-    activeCases: r.active_cases, closedCases: r.closed_cases, totalCases: r.total_cases,
+    id: r.id,
+    lastName: r.last_name,
+    firstName: r.first_name,
+    activeCases: r.active_cases,
+    closedCases: r.closed_cases,
+    totalCases: r.total_cases,
   };
 }
 
 function formatLawyerResults(r: any) {
   return {
-    id: r.id, lastName: r.last_name, firstName: r.first_name,
-    wins: r.wins, losses: r.losses, partial: r.partial,
-    decided: r.decided, winRate: r.win_rate !== null ? Number(r.win_rate) : null,
+    id: r.id,
+    lastName: r.last_name,
+    firstName: r.first_name,
+    wins: r.wins,
+    losses: r.losses,
+    partial: r.partial,
+    decided: r.decided,
+    winRate: r.win_rate !== null ? Number(r.win_rate) : null,
   };
 }
 
 function formatStaleCase(r: any) {
   return {
-    id: r.id, name: r.name, status: r.status, lawyerId: r.lawyer_id,
+    id: r.id,
+    name: r.name,
+    status: r.status,
+    lawyerId: r.lawyer_id,
     lawyerName: `${r.last_name} ${r.first_name}`,
-    lastHearing: r.last_hearing, daysInactive: r.days_inactive,
+    lastHearing: r.last_hearing,
+    daysInactive: r.days_inactive,
   };
 }
 
 function formatFinance(r: any) {
   return {
-    id: r.id, lastName: r.last_name, firstName: r.first_name,
-    activeAmount: Number(r.active_amount), closedAmount: Number(r.closed_amount),
+    id: r.id,
+    lastName: r.last_name,
+    firstName: r.first_name,
+    activeAmount: Number(r.active_amount),
+    closedAmount: Number(r.closed_amount),
     totalAmount: Number(r.total_amount),
   };
 }
 
 function formatSummary(r: any) {
   return {
-    category: r.category, total: r.total, active: r.active, closed: r.closed,
-    wins: r.wins, losses: r.losses,
+    category: r.category,
+    total: r.total,
+    active: r.active,
+    closed: r.closed,
+    wins: r.wins,
+    losses: r.losses,
   };
 }
 
 function formatDuration(r: any) {
   return {
-    category: r.category, closedCount: r.closed_count,
-    avgDays: r.avg_days, minDays: r.min_days, maxDays: r.max_days,
+    category: r.category,
+    closedCount: r.closed_count,
+    avgDays: r.avg_days,
+    minDays: r.min_days,
+    maxDays: r.max_days,
   };
 }
 
 function formatInstances(r: any) {
   return {
-    stageType: r.stage_type, sortOrder: r.sort_order,
-    casesCount: r.cases_count, stagesCount: r.stages_count,
+    stageType: r.stage_type,
+    sortOrder: r.sort_order,
+    casesCount: r.cases_count,
+    stagesCount: r.stages_count,
   };
 }
 
@@ -303,9 +332,15 @@ function formatMyLoad(r: any) {
 
 function formatCalendarEvent(r: any) {
   return {
-    id: r.id, type: r.type, datetime: r.datetime, result: r.result,
-    court: r.court, caseNumber: r.case_number,
-    caseId: r.case_id, caseName: r.case_name, lawyerId: r.lawyer_id,
+    id: r.id,
+    type: r.type,
+    datetime: r.datetime,
+    result: r.result,
+    court: r.court,
+    caseNumber: r.case_number,
+    caseId: r.case_id,
+    caseName: r.case_name,
+    lawyerId: r.lawyer_id,
   };
 }
 

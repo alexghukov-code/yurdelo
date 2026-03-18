@@ -26,9 +26,7 @@ describe('GET /v1/users', () => {
       .mockResolvedValueOnce({ rows: [USERS.admin, USERS.lawyer], rowCount: 2 })
       .mockResolvedValueOnce({ rows: [{ total: 2 }], rowCount: 1 });
 
-    const res = await request(app)
-      .get('/v1/users')
-      .set('Authorization', authHeader(USERS.admin));
+    const res = await request(app).get('/v1/users').set('Authorization', authHeader(USERS.admin));
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(2);
@@ -42,9 +40,7 @@ describe('GET /v1/users', () => {
       .mockResolvedValueOnce({ rows: [USERS.admin], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ total: 1 }], rowCount: 1 });
 
-    const res = await request(app)
-      .get('/v1/users')
-      .set('Authorization', authHeader(USERS.lawyer));
+    const res = await request(app).get('/v1/users').set('Authorization', authHeader(USERS.lawyer));
 
     expect(res.status).toBe(200);
     expect(res.body.data[0]).not.toHaveProperty('email');
@@ -87,9 +83,12 @@ describe('POST /v1/users', () => {
 
   it('admin creates user (201)', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                // email check
-      .mockResolvedValueOnce({ rows: [{ ...USERS.lawyer, id: 'new-id', email: 'new@test.ru', updated_at: NOW }], rowCount: 1 }) // INSERT
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 });               // audit_log
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // email check
+      .mockResolvedValueOnce({
+        rows: [{ ...USERS.lawyer, id: 'new-id', email: 'new@test.ru', updated_at: NOW }],
+        rowCount: 1,
+      }) // INSERT
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }); // audit_log
 
     const res = await request(app)
       .post('/v1/users')
@@ -234,7 +233,7 @@ describe('PATCH /v1/users/:id', () => {
 
   it('returns 409 STALE_DATA on optimistic lock conflict', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })              // UPDATE returns 0 rows
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // UPDATE returns 0 rows
       .mockResolvedValueOnce({ rows: [{ id: USERS.lawyer.id }], rowCount: 1 }); // user exists
 
     const res = await request(app)
@@ -249,7 +248,7 @@ describe('PATCH /v1/users/:id', () => {
 
   it('returns 404 when user does not exist', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })  // UPDATE returns 0
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // UPDATE returns 0
       .mockResolvedValueOnce({ rows: [], rowCount: 0 }); // existence check
 
     const res = await request(app)
@@ -294,13 +293,13 @@ describe('POST /v1/users/:id/deactivate', () => {
   it('admin deactivates user (no active cases)', async () => {
     const client = pool._client;
     client.query
-      .mockResolvedValueOnce({ rows: [] })                          // BEGIN
-      .mockResolvedValueOnce({ rows: [targetUser], rowCount: 1 })   // SELECT user
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })             // SELECT active cases
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // UPDATE deactivate
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // INSERT user_history
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // INSERT audit_log
-      .mockResolvedValueOnce({ rows: [] });                         // COMMIT
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [targetUser], rowCount: 1 }) // SELECT user
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SELECT active cases
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // UPDATE deactivate
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT user_history
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT audit_log
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
     const res = await request(app)
       .post(`/v1/users/${USERS.lawyer.id}/deactivate`)
@@ -317,17 +316,17 @@ describe('POST /v1/users/:id/deactivate', () => {
     const transferTo = 'a0000000-0000-0000-0000-000000000010';
 
     client.query
-      .mockResolvedValueOnce({ rows: [] })                          // BEGIN
-      .mockResolvedValueOnce({ rows: [targetUser], rowCount: 1 })   // SELECT user
-      .mockResolvedValueOnce({ rows: activeCases, rowCount: 2 })    // SELECT active cases
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [targetUser], rowCount: 1 }) // SELECT user
+      .mockResolvedValueOnce({ rows: activeCases, rowCount: 2 }) // SELECT active cases
       .mockResolvedValueOnce({ rows: [{ id: transferTo }], rowCount: 1 }) // verify recipient
-      .mockResolvedValueOnce({ rows: [], rowCount: 2 })             // UPDATE cases
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // INSERT transfer 1
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // INSERT transfer 2
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // UPDATE deactivate
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // INSERT user_history
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // INSERT audit_log
-      .mockResolvedValueOnce({ rows: [] });                         // COMMIT
+      .mockResolvedValueOnce({ rows: [], rowCount: 2 }) // UPDATE cases
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT transfer 1
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT transfer 2
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // UPDATE deactivate
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT user_history
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT audit_log
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
     const res = await request(app)
       .post(`/v1/users/${USERS.lawyer.id}/deactivate`)
@@ -345,13 +344,13 @@ describe('POST /v1/users/:id/deactivate', () => {
   it('stores user_history entry', async () => {
     const client = pool._client;
     client.query
-      .mockResolvedValueOnce({ rows: [] })                          // BEGIN
-      .mockResolvedValueOnce({ rows: [targetUser], rowCount: 1 })   // SELECT user
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })             // SELECT active cases
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // UPDATE deactivate
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // INSERT user_history
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })             // INSERT audit_log
-      .mockResolvedValueOnce({ rows: [] });                         // COMMIT
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [targetUser], rowCount: 1 }) // SELECT user
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SELECT active cases
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // UPDATE deactivate
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT user_history
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT audit_log
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
     await request(app)
       .post(`/v1/users/${USERS.lawyer.id}/deactivate`)
@@ -369,8 +368,8 @@ describe('POST /v1/users/:id/deactivate', () => {
     const adminTarget = { ...USERS.admin, id: 'other-admin-id' };
     const client = pool._client;
     client.query
-      .mockResolvedValueOnce({ rows: [] })                          // BEGIN
-      .mockResolvedValueOnce({ rows: [adminTarget], rowCount: 1 })  // SELECT user (admin)
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [adminTarget], rowCount: 1 }) // SELECT user (admin)
       .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 }); // no other admins
 
     const res = await request(app)
@@ -404,8 +403,8 @@ describe('POST /v1/users/:id/deactivate', () => {
   it('returns 409 when active cases exist and no transferToId', async () => {
     const client = pool._client;
     client.query
-      .mockResolvedValueOnce({ rows: [] })                          // BEGIN
-      .mockResolvedValueOnce({ rows: [targetUser], rowCount: 1 })   // SELECT user
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [targetUser], rowCount: 1 }) // SELECT user
       .mockResolvedValueOnce({ rows: [{ id: 'c1' }], rowCount: 1 }); // has active cases
 
     const res = await request(app)
@@ -452,13 +451,13 @@ describe('POST /v1/users/:id/restore', () => {
   it('admin restores inactive user', async () => {
     const client = pool._client;
     client.query
-      .mockResolvedValueOnce({ rows: [] })                              // BEGIN
-      .mockResolvedValueOnce({ rows: [inactiveUser], rowCount: 1 })     // SELECT user
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                 // email check
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })                 // UPDATE restore
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })                 // INSERT user_history
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })                 // INSERT audit_log
-      .mockResolvedValueOnce({ rows: [] });                             // COMMIT
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [inactiveUser], rowCount: 1 }) // SELECT user
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // email check
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // UPDATE restore
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT user_history
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // INSERT audit_log
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
     const res = await request(app)
       .post(`/v1/users/${USERS.inactive.id}/restore`)
@@ -472,8 +471,8 @@ describe('POST /v1/users/:id/restore', () => {
   it('returns 409 when email is taken by another active user', async () => {
     const client = pool._client;
     client.query
-      .mockResolvedValueOnce({ rows: [] })                              // BEGIN
-      .mockResolvedValueOnce({ rows: [inactiveUser], rowCount: 1 })     // SELECT user
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [inactiveUser], rowCount: 1 }) // SELECT user
       .mockResolvedValueOnce({ rows: [{ id: 'other' }], rowCount: 1 }); // email taken!
 
     const res = await request(app)

@@ -71,7 +71,14 @@ describe('QueryErrorView', () => {
     server.use(
       http.get('/api/v1/auth/me', () =>
         HttpResponse.json({
-          data: { id: 'u1', email: 'a@t.ru', role: 'lawyer', firstName: 'T', lastName: 'T', twoFaEnabled: false },
+          data: {
+            id: 'u1',
+            email: 'a@t.ru',
+            role: 'lawyer',
+            firstName: 'T',
+            lastName: 'T',
+            twoFaEnabled: false,
+          },
         }),
       ),
     );

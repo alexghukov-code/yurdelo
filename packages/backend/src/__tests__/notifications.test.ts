@@ -22,8 +22,7 @@ beforeEach(() => {
 describe('dedup: no duplicate notifications', () => {
   it('creates notification on first call', async () => {
     const mp = createMockPool();
-    mp.query
-      .mockResolvedValueOnce({ rows: [{ id: 'notif-1' }], rowCount: 1 }); // INSERT ... WHERE NOT EXISTS → inserted
+    mp.query.mockResolvedValueOnce({ rows: [{ id: 'notif-1' }], rowCount: 1 }); // INSERT ... WHERE NOT EXISTS → inserted
 
     const id = await notify(mp, null, {
       userId: USERS.lawyer.id,
@@ -44,7 +43,7 @@ describe('dedup: no duplicate notifications', () => {
   it('skips insert when same notification exists within 24h', async () => {
     const mp = createMockPool();
     mp.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // INSERT returned 0 (WHERE NOT EXISTS matched)
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // INSERT returned 0 (WHERE NOT EXISTS matched)
       .mockResolvedValueOnce({ rows: [{ id: 'existing' }], rowCount: 1 }); // SELECT existing
 
     const id = await notify(mp, null, {
@@ -99,15 +98,19 @@ describe('dedup: no duplicate notifications', () => {
   it('dedup allows same type for different entityIds', async () => {
     const mp = createMockPool();
     mp.query
-      .mockResolvedValueOnce({ rows: [{ id: 'n1' }], rowCount: 1 })  // first entity
+      .mockResolvedValueOnce({ rows: [{ id: 'n1' }], rowCount: 1 }) // first entity
       .mockResolvedValueOnce({ rows: [{ id: 'n2' }], rowCount: 1 }); // second entity
 
     const id1 = await notify(mp, null, {
-      userId: USERS.lawyer.id, type: 'hearing_reminder', title: 'A',
+      userId: USERS.lawyer.id,
+      type: 'hearing_reminder',
+      title: 'A',
       entityId: 'hearing-1',
     });
     const id2 = await notify(mp, null, {
-      userId: USERS.lawyer.id, type: 'hearing_reminder', title: 'B',
+      userId: USERS.lawyer.id,
+      type: 'hearing_reminder',
+      title: 'B',
       entityId: 'hearing-2',
     });
 
@@ -185,19 +188,33 @@ describe('email queue: never blocks or breaks API', () => {
     const toId = 'a0000000-0000-0000-0000-000000000010';
     const client = pool._client;
     const transfer = {
-      id: 't1', case_id: CASES.active.id,
-      from_id: USERS.lawyer.id, to_id: toId,
-      transfer_date: '2026-03-17', comment: null, created_at: NOW,
+      id: 't1',
+      case_id: CASES.active.id,
+      from_id: USERS.lawyer.id,
+      to_id: toId,
+      transfer_date: '2026-03-17',
+      comment: null,
+      created_at: NOW,
     };
 
     client.query
-      .mockResolvedValueOnce({ rows: [] })                                           // BEGIN
-      .mockResolvedValueOnce({ rows: [{ id: CASES.active.id, name: 'Case', lawyer_id: USERS.lawyer.id, from_last: 'P', from_first: 'M' }] })
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: CASES.active.id,
+            name: 'Case',
+            lawyer_id: USERS.lawyer.id,
+            from_last: 'P',
+            from_first: 'M',
+          },
+        ],
+      })
       .mockResolvedValueOnce({ rows: [{ id: toId, last_name: 'S', first_name: 'D' }] })
-      .mockResolvedValueOnce({ rows: [transfer], rowCount: 1 })                      // INSERT transfer
-      .mockResolvedValueOnce({ rows: [] })                                           // UPDATE case
-      .mockResolvedValueOnce({ rows: [] })                                           // audit_log
-      .mockResolvedValueOnce({ rows: [] });                                          // COMMIT
+      .mockResolvedValueOnce({ rows: [transfer], rowCount: 1 }) // INSERT transfer
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE case
+      .mockResolvedValueOnce({ rows: [] }) // audit_log
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
     // After COMMIT, notifyTransfer fires on pool.query — mock it to fail
     pool.query.mockRejectedValueOnce(new Error('DB down for notifications'));
@@ -276,10 +293,16 @@ describe('email queue: correct job parameters', () => {
     const mockQueue = { add: vi.fn().mockResolvedValue({}) } as any;
 
     await notify(mp, mockQueue, {
-      userId: USERS.lawyer.id, type: 'test', title: 'A', entityId: 'e1',
+      userId: USERS.lawyer.id,
+      type: 'test',
+      title: 'A',
+      entityId: 'e1',
     });
     await notify(mp, mockQueue, {
-      userId: USERS.lawyer.id, type: 'test', title: 'B', entityId: 'e2',
+      userId: USERS.lawyer.id,
+      type: 'test',
+      title: 'B',
+      entityId: 'e2',
     });
 
     const jobId1 = mockQueue.add.mock.calls[0][2].jobId;
@@ -290,7 +313,7 @@ describe('email queue: correct job parameters', () => {
   it('does not enqueue email on dedup hit', async () => {
     const mp = createMockPool();
     mp.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // INSERT → 0 rows (dedup)
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // INSERT → 0 rows (dedup)
       .mockResolvedValueOnce({ rows: [{ id: 'existing' }], rowCount: 1 }); // SELECT existing
 
     const mockQueue = { add: vi.fn().mockResolvedValue({}) } as any;
@@ -313,10 +336,15 @@ describe('email queue: correct job parameters', () => {
 
 describe('GET /v1/notifications', () => {
   const mockNotif = {
-    id: 'n1', type: 'case_transfer_in', title: 'Вам передано дело',
-    message: 'Текст', link: '/cases/1',
-    entity_type: 'case', entity_id: CASES.active.id,
-    is_read: false, created_at: NOW,
+    id: 'n1',
+    type: 'case_transfer_in',
+    title: 'Вам передано дело',
+    message: 'Текст',
+    link: '/cases/1',
+    entity_type: 'case',
+    entity_id: CASES.active.id,
+    is_read: false,
+    created_at: NOW,
   };
 
   it('returns notifications + unread count', async () => {

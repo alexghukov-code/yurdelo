@@ -32,7 +32,9 @@ export function UserMenu({ firstName, lastName, role, onLogout }: UserMenuProps)
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
       >
-        <span className="font-medium">{lastName} {firstName}</span>
+        <span className="font-medium">
+          {lastName} {firstName}
+        </span>
         <ChevronDown className="h-4 w-4" />
       </button>
 
@@ -45,7 +47,10 @@ export function UserMenu({ firstName, lastName, role, onLogout }: UserMenuProps)
             <p className="text-xs text-gray-500">{ROLE_LABELS[role] ?? role}</p>
           </div>
           <button
-            onClick={() => { onLogout(); setOpen(false); }}
+            onClick={() => {
+              onLogout();
+              setOpen(false);
+            }}
             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
           >
             <LogOut className="h-4 w-4" />

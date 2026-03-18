@@ -24,9 +24,7 @@ describe('GET /v1/cases', () => {
       .mockResolvedValueOnce({ rows: [CASES.active], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ total: 1 }] });
 
-    const res = await request(app)
-      .get('/v1/cases')
-      .set('Authorization', authHeader(USERS.admin));
+    const res = await request(app).get('/v1/cases').set('Authorization', authHeader(USERS.admin));
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
@@ -39,9 +37,7 @@ describe('GET /v1/cases', () => {
       .mockResolvedValueOnce({ rows: [CASES.active], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ total: 1 }] });
 
-    const res = await request(app)
-      .get('/v1/cases')
-      .set('Authorization', authHeader(USERS.lawyer));
+    const res = await request(app).get('/v1/cases').set('Authorization', authHeader(USERS.lawyer));
 
     expect(res.status).toBe(200);
     // Verify lawyer_id param was passed in query
@@ -56,9 +52,7 @@ describe('GET /v1/cases', () => {
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })
       .mockResolvedValueOnce({ rows: [{ total: 0 }] });
 
-    const res = await request(app)
-      .get('/v1/cases')
-      .set('Authorization', authHeader(USERS.viewer));
+    const res = await request(app).get('/v1/cases').set('Authorization', authHeader(USERS.viewer));
 
     expect(res.status).toBe(200);
   });
@@ -159,8 +153,8 @@ describe('GET /v1/cases/:id', () => {
   it('returns case with nested stages and hearings', async () => {
     pool.query
       .mockResolvedValueOnce({ rows: [CASES.active], rowCount: 1 }) // case
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })             // stages
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 });            // hearings
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // stages
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }); // hearings
 
     const res = await request(app)
       .get(`/v1/cases/${CASES.active.id}`)
@@ -200,7 +194,8 @@ describe('GET /v1/cases/:id', () => {
 describe('PATCH /v1/cases/:id', () => {
   it('admin updates case', async () => {
     pool.query.mockResolvedValueOnce({
-      rows: [{ ...CASES.active, name: 'Обновлённое' }], rowCount: 1,
+      rows: [{ ...CASES.active, name: 'Обновлённое' }],
+      rowCount: 1,
     });
 
     const res = await request(app)
@@ -227,7 +222,7 @@ describe('PATCH /v1/cases/:id', () => {
 
   it('returns 409 STALE_DATA on optimistic lock conflict', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })              // UPDATE returns 0
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // UPDATE returns 0
       .mockResolvedValueOnce({ rows: [{ id: CASES.active.id }], rowCount: 1 }); // exists
 
     const res = await request(app)
@@ -256,9 +251,9 @@ describe('PATCH /v1/cases/:id', () => {
 describe('DELETE /v1/cases/:id', () => {
   it('admin soft-deletes case without stages', async () => {
     pool.query
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })     // no stages
-      .mockResolvedValueOnce({ rows: [], rowCount: 1 })     // UPDATE deleted_at
-      .mockResolvedValueOnce({ rows: [] });                 // audit_log
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // no stages
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // UPDATE deleted_at
+      .mockResolvedValueOnce({ rows: [] }); // audit_log
 
     const res = await request(app)
       .delete(`/v1/cases/${CASES.active.id}`)
@@ -293,7 +288,8 @@ describe('DELETE /v1/cases/:id', () => {
 describe('PATCH /v1/cases/:id/status', () => {
   it('changes status to closed and suggests final_result', async () => {
     pool.query.mockResolvedValueOnce({
-      rows: [{ ...CASES.active, status: 'closed', final_result: null }], rowCount: 1,
+      rows: [{ ...CASES.active, status: 'closed', final_result: null }],
+      rowCount: 1,
     });
 
     const res = await request(app)
@@ -327,7 +323,8 @@ describe('PATCH /v1/cases/:id/status', () => {
 describe('PATCH /v1/cases/:id/final-result', () => {
   it('sets final_result explicitly', async () => {
     pool.query.mockResolvedValueOnce({
-      rows: [{ ...CASES.active, final_result: 'win' }], rowCount: 1,
+      rows: [{ ...CASES.active, final_result: 'win' }],
+      rowCount: 1,
     });
 
     const res = await request(app)
@@ -359,9 +356,7 @@ describe('RLS integration: role-based access control', () => {
       .mockResolvedValueOnce({ rows: [CASES.active], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ total: 1 }] });
 
-    await request(app)
-      .get('/v1/cases')
-      .set('Authorization', authHeader(USERS.lawyer));
+    await request(app).get('/v1/cases').set('Authorization', authHeader(USERS.lawyer));
 
     // The SQL must include lawyer_id filter
     const selectCall = pool.query.mock.calls[0];
@@ -397,9 +392,7 @@ describe('RLS integration: role-based access control', () => {
       .mockResolvedValueOnce({ rows: [CASES.active], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ total: 1 }] });
 
-    const res = await request(app)
-      .get('/v1/cases')
-      .set('Authorization', authHeader(USERS.viewer));
+    const res = await request(app).get('/v1/cases').set('Authorization', authHeader(USERS.viewer));
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
@@ -436,9 +429,7 @@ describe('RLS integration: role-based access control', () => {
       .mockResolvedValueOnce({ rows: [CASES.active], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ total: 1 }] });
 
-    await request(app)
-      .get('/v1/cases')
-      .set('Authorization', authHeader(USERS.admin));
+    await request(app).get('/v1/cases').set('Authorization', authHeader(USERS.admin));
 
     // SQL should NOT contain lawyer_id filter
     const sql = pool.query.mock.calls[0][0] as string;

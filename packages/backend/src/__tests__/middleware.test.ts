@@ -391,9 +391,7 @@ describe('API logger middleware', () => {
     app.use(createApiLogger(pool as any));
     app.get('/test', (_req, res) => res.json({ ok: true }));
 
-    await request(app)
-      .get('/test')
-      .set('X-Forwarded-For', '203.0.113.50');
+    await request(app).get('/test').set('X-Forwarded-For', '203.0.113.50');
     await new Promise((r) => setTimeout(r, 50));
 
     const params = pool.query.mock.calls[0]?.[1] as any[];
@@ -425,7 +423,9 @@ describe('Cleanup jobs', () => {
     await _runCleanup(pool as any);
 
     expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining("DELETE FROM auth_events WHERE created_at < NOW() - INTERVAL '90 days'"),
+      expect.stringContaining(
+        "DELETE FROM auth_events WHERE created_at < NOW() - INTERVAL '90 days'",
+      ),
     );
   });
 
@@ -490,12 +490,8 @@ describe('Cleanup jobs', () => {
     await new Promise((r) => setTimeout(r, 50));
 
     // Should have executed DELETE queries on startup
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('DELETE FROM api_logs'),
-    );
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('DELETE FROM auth_events'),
-    );
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('DELETE FROM api_logs'));
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('DELETE FROM auth_events'));
 
     // Cleanup timer to avoid leaks in test
     clearInterval(timer);
@@ -521,9 +517,7 @@ describe('Middleware wired in app.ts', () => {
       disableApiLogger: true,
     });
 
-    await request(app)
-      .get('/v1/cases')
-      .set('Authorization', authHeader(USERS.admin));
+    await request(app).get('/v1/cases').set('Authorization', authHeader(USERS.admin));
 
     // Rate limiter should have called redis.incr
     expect(redis.incr).toHaveBeenCalled();
@@ -542,9 +536,7 @@ describe('Middleware wired in app.ts', () => {
       // NOT disabling api logger
     });
 
-    await request(app)
-      .get('/v1/cases')
-      .set('Authorization', authHeader(USERS.admin));
+    await request(app).get('/v1/cases').set('Authorization', authHeader(USERS.admin));
 
     await new Promise((r) => setTimeout(r, 50));
 

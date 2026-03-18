@@ -4,7 +4,12 @@
       "Bash(py:*)",
       "Bash(cd:*)",
       "Bash(which:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm run:*)",
+      "Bash(npx vitest:*)",
+      "Bash(find /d/yurdelo -type f \\\\\\(-name *ТЗ* -o -name *TZ* \\\\\\))",
+      "Bash(xargs grep:*)",
+      "Bash(npx -y mammoth YurDelo_TZ_v2_1.docx --output-format=text)"
     ]
   }
 }

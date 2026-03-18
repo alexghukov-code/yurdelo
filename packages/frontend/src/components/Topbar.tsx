@@ -19,12 +19,7 @@ export function Topbar({ firstName, lastName, role, onLogout, onMenuClick }: Top
       <div className="flex-1" />
       <div className="flex items-center gap-4">
         <NotificationBell />
-        <UserMenu
-          firstName={firstName}
-          lastName={lastName}
-          role={role}
-          onLogout={onLogout}
-        />
+        <UserMenu firstName={firstName} lastName={lastName} role={role} onLogout={onLogout} />
       </div>
     </header>
   );

@@ -62,7 +62,9 @@ export function CaseForm({ mode, initialData, onSubmit, onCancel, isSubmitting }
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       {/* Name */}
       <div>
-        <label htmlFor="cf-name" className="block text-sm font-medium text-gray-700 mb-1">Название дела</label>
+        <label htmlFor="cf-name" className="block text-sm font-medium text-gray-700 mb-1">
+          Название дела
+        </label>
         <input
           id="cf-name"
           {...register('name', {
@@ -78,7 +80,9 @@ export function CaseForm({ mode, initialData, onSubmit, onCancel, isSubmitting }
 
       {/* Category */}
       <div>
-        <label htmlFor="cf-category" className="block text-sm font-medium text-gray-700 mb-1">Категория</label>
+        <label htmlFor="cf-category" className="block text-sm font-medium text-gray-700 mb-1">
+          Категория
+        </label>
         <select
           id="cf-category"
           {...register('category', { required: 'Категория обязательна.' })}
@@ -88,7 +92,9 @@ export function CaseForm({ mode, initialData, onSubmit, onCancel, isSubmitting }
         >
           <option value="">— Выберите —</option>
           {CATEGORIES.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
           ))}
         </select>
         {errors.category && <p className="text-xs text-red-600 mt-1">{errors.category.message}</p>}
@@ -134,7 +140,9 @@ export function CaseForm({ mode, initialData, onSubmit, onCancel, isSubmitting }
 
       {/* Claim amount */}
       <div>
-        <label htmlFor="cf-amount" className="block text-sm font-medium text-gray-700 mb-1">Цена иска, ₽</label>
+        <label htmlFor="cf-amount" className="block text-sm font-medium text-gray-700 mb-1">
+          Цена иска, ₽
+        </label>
         <input
           id="cf-amount"
           type="number"
@@ -147,7 +155,9 @@ export function CaseForm({ mode, initialData, onSubmit, onCancel, isSubmitting }
             errors.claimAmount ? 'border-red-300' : 'border-gray-300'
           }`}
         />
-        {errors.claimAmount && <p className="text-xs text-red-600 mt-1">{errors.claimAmount.message}</p>}
+        {errors.claimAmount && (
+          <p className="text-xs text-red-600 mt-1">{errors.claimAmount.message}</p>
+        )}
       </div>
 
       {/* Admin sees lawyer info */}
@@ -172,9 +182,7 @@ export function CaseForm({ mode, initialData, onSubmit, onCancel, isSubmitting }
           disabled={isSubmitting}
           className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {isSubmitting
-            ? 'Сохранение...'
-            : mode === 'create' ? 'Создать' : 'Сохранить'}
+          {isSubmitting ? 'Сохранение...' : mode === 'create' ? 'Создать' : 'Сохранить'}
         </button>
       </div>
     </form>

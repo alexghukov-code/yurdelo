@@ -1,15 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  fetchCases, fetchCase, createCase, updateCase, deleteCase,
-  updateCaseStatus, setCaseFinalResult,
+  fetchCases,
+  fetchCase,
+  createCase,
+  updateCase,
+  deleteCase,
+  updateCaseStatus,
+  setCaseFinalResult,
 } from '../api/cases';
 import toast from 'react-hot-toast';
 
-export function useCasesList(params: {
-  page?: number;
-  status?: string;
-  search?: string;
-}) {
+export function useCasesList(params: { page?: number; status?: string; search?: string }) {
   return useQuery({
     queryKey: ['cases', params],
     queryFn: () => fetchCases(params),
@@ -39,7 +40,10 @@ export function useCreateCase() {
 export function useUpdateCase() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...body }: { id: string } & Record<string, unknown> & { updatedAt: string }) =>
+    mutationFn: ({
+      id,
+      ...body
+    }: { id: string } & Record<string, unknown> & { updatedAt: string }) =>
       updateCase(id, body as any),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['cases', vars.id] });

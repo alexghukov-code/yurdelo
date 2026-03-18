@@ -23,7 +23,9 @@ export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Que
       await client.query('BEGIN');
 
       // 1. Get case + current owner + names
-      const { rows: [caseRow] } = await client.query(
+      const {
+        rows: [caseRow],
+      } = await client.query(
         `SELECT c.id, c.name, c.lawyer_id,
                 u.last_name AS from_last, u.first_name AS from_first
          FROM cases c JOIN users u ON u.id = c.lawyer_id
@@ -45,7 +47,9 @@ export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Que
       }
 
       // 3. Verify recipient is active
-      const { rows: [recipient] } = await client.query(
+      const {
+        rows: [recipient],
+      } = await client.query(
         `SELECT id, last_name, first_name FROM users WHERE id = $1 AND status = 'active' AND deleted_at IS NULL`,
         [body.toId],
       );
@@ -68,18 +72,18 @@ export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Que
       }
 
       // 5. Update case owner
-      await client.query(
-        `UPDATE cases SET lawyer_id = $1 WHERE id = $2`,
-        [body.toId, body.caseId],
-      );
+      await client.query(`UPDATE cases SET lawyer_id = $1 WHERE id = $2`, [body.toId, body.caseId]);
 
       // 6. Audit log
       await writeAuditLog(client, {
-        userId: req.user!.id, action: 'TRANSFER', entityType: 'case',
+        userId: req.user!.id,
+        action: 'TRANSFER',
+        entityType: 'case',
         entityId: body.caseId,
         oldValue: { lawyerId: fromId },
         newValue: { lawyerId: body.toId },
-        ip: req.ip, userAgent: req.headers['user-agent'] as string,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'] as string,
       });
 
       await client.query('COMMIT');
@@ -119,11 +123,26 @@ export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Que
       params.push(req.user!.id);
       idx++;
     }
-    if (req.query.caseId) { where += ` AND t.case_id = $${idx++}`; params.push(req.query.caseId); }
-    if (req.query.fromId) { where += ` AND t.from_id = $${idx++}`; params.push(req.query.fromId); }
-    if (req.query.toId) { where += ` AND t.to_id = $${idx++}`; params.push(req.query.toId); }
-    if (req.query.dateFrom) { where += ` AND t.transfer_date >= $${idx++}`; params.push(req.query.dateFrom); }
-    if (req.query.dateTo) { where += ` AND t.transfer_date <= $${idx++}`; params.push(req.query.dateTo); }
+    if (req.query.caseId) {
+      where += ` AND t.case_id = $${idx++}`;
+      params.push(req.query.caseId);
+    }
+    if (req.query.fromId) {
+      where += ` AND t.from_id = $${idx++}`;
+      params.push(req.query.fromId);
+    }
+    if (req.query.toId) {
+      where += ` AND t.to_id = $${idx++}`;
+      params.push(req.query.toId);
+    }
+    if (req.query.dateFrom) {
+      where += ` AND t.transfer_date >= $${idx++}`;
+      params.push(req.query.dateFrom);
+    }
+    if (req.query.dateTo) {
+      where += ` AND t.transfer_date <= $${idx++}`;
+      params.push(req.query.dateTo);
+    }
 
     const [{ rows }, { rows: cnt }] = await Promise.all([
       db.query(
@@ -151,7 +170,9 @@ export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Que
 
   // ── GET /transfers/:id ──────────────────────────────
   router.get('/transfers/:id', requireAuth, async (req, res) => {
-    const { rows: [t] } = await db.query(
+    const {
+      rows: [t],
+    } = await db.query(
       `SELECT t.*, f.last_name AS from_last, f.first_name AS from_first,
               r.last_name AS to_last, r.first_name AS to_first,
               c.name AS case_name
@@ -173,11 +194,15 @@ export function transfersRouter(deps: { db: Pool; redis: Redis; emailQueue?: Que
 
 function formatTransfer(t: any) {
   return {
-    id: t.id, caseId: t.case_id,
-    fromId: t.from_id, toId: t.to_id,
+    id: t.id,
+    caseId: t.case_id,
+    fromId: t.from_id,
+    toId: t.to_id,
     fromName: t.from_last ? `${t.from_last} ${t.from_first}` : undefined,
     toName: t.to_last ? `${t.to_last} ${t.to_first}` : undefined,
     caseName: t.case_name,
-    transferDate: t.transfer_date, comment: t.comment, createdAt: t.created_at,
+    transferDate: t.transfer_date,
+    comment: t.comment,
+    createdAt: t.created_at,
   };
 }

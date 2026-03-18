@@ -24,9 +24,7 @@ function renderApp(route: string, ui: React.ReactElement) {
   return renderWithProviders(
     <Routes>
       <Route element={<ProtectedRoute />}>
-        <Route element={<AppShell />}>
-          {ui}
-        </Route>
+        <Route element={<AppShell />}>{ui}</Route>
       </Route>
     </Routes>,
     { route },
@@ -40,9 +38,7 @@ describe('Lawyer flows', () => {
   });
 
   it('does not see Users nav item', async () => {
-    server.use(
-      http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)),
-    );
+    server.use(http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)));
 
     renderApp('/', <Route index element={<CasesPage />} />);
 
@@ -54,9 +50,7 @@ describe('Lawyer flows', () => {
   });
 
   it('can see create case button', async () => {
-    server.use(
-      http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)),
-    );
+    server.use(http.get('/api/v1/cases', () => HttpResponse.json(EMPTY_LIST)));
 
     renderApp('/cases', <Route path="cases" element={<CasesPage />} />);
 
@@ -95,11 +89,12 @@ describe('Lawyer flows', () => {
   });
 
   it('cannot see manager report tabs', async () => {
-    renderApp('/reports', (
+    renderApp(
+      '/reports',
       <Route path="reports" element={<ProtectedRoute roles={['admin', 'lawyer']} />}>
         <Route index element={<ReportsPage />} />
-      </Route>
-    ));
+      </Route>,
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/Недостаточно данных|Активные/)).toBeInTheDocument();

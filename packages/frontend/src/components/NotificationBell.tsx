@@ -58,9 +58,7 @@ export function NotificationBell() {
                 Не удалось загрузить уведомления.
               </p>
             ) : items.length === 0 ? (
-              <p className="px-4 py-8 text-sm text-gray-400 text-center">
-                Новых уведомлений нет.
-              </p>
+              <p className="px-4 py-8 text-sm text-gray-400 text-center">Новых уведомлений нет.</p>
             ) : (
               items.map((n) => (
                 <button

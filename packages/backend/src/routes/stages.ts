@@ -13,39 +13,51 @@ export function stagesRouter(deps: { db: Pool; redis: Redis }) {
   const router = Router();
 
   // ── POST /cases/:caseId/stages ──────────────────────
-  router.post('/cases/:caseId/stages', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
-    await assertOwnership(db, req.params.caseId as string, req.user!);
-    const body = validate(createStageSchema, req.body);
+  router.post(
+    '/cases/:caseId/stages',
+    requireAuth,
+    requireRole('admin', 'lawyer'),
+    async (req, res) => {
+      await assertOwnership(db, req.params.caseId as string, req.user!);
+      const body = validate(createStageSchema, req.body);
 
-    // sort_order warning (not blocking)
-    const { rows: existing } = await db.query(
-      `SELECT sort_order FROM stages WHERE case_id = $1 AND deleted_at IS NULL ORDER BY sort_order`,
-      [req.params.caseId],
-    );
-    const maxOrder = existing.length ? Math.max(...existing.map((s: any) => s.sort_order)) : 0;
-    const warning = body.sortOrder <= maxOrder
-      ? `Вы добавляете стадию с порядком ${body.sortOrder}, но уже существуют стадии с порядком до ${maxOrder}. Продолжить?`
-      : undefined;
+      // sort_order warning (not blocking)
+      const { rows: existing } = await db.query(
+        `SELECT sort_order FROM stages WHERE case_id = $1 AND deleted_at IS NULL ORDER BY sort_order`,
+        [req.params.caseId],
+      );
+      const maxOrder = existing.length ? Math.max(...existing.map((s: any) => s.sort_order)) : 0;
+      const warning =
+        body.sortOrder <= maxOrder
+          ? `Вы добавляете стадию с порядком ${body.sortOrder}, но уже существуют стадии с порядком до ${maxOrder}. Продолжить?`
+          : undefined;
 
-    const { rows } = await db.query(
-      `INSERT INTO stages (case_id, stage_type_id, sort_order, court, case_number)
+      const { rows } = await db.query(
+        `INSERT INTO stages (case_id, stage_type_id, sort_order, court, case_number)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [req.params.caseId, body.stageTypeId, body.sortOrder, body.court, body.caseNumber],
-    );
+        [req.params.caseId, body.stageTypeId, body.sortOrder, body.court, body.caseNumber],
+      );
 
-    await writeAuditLog(db, {
-      userId: req.user!.id, action: 'CREATE', entityType: 'stage',
-      entityId: rows[0].id, newValue: body,
-      ip: req.ip, userAgent: req.headers['user-agent'] as string,
-    });
+      await writeAuditLog(db, {
+        userId: req.user!.id,
+        action: 'CREATE',
+        entityType: 'stage',
+        entityId: rows[0].id,
+        newValue: body,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'] as string,
+      });
 
-    res.status(201).json({ data: formatStage(rows[0]), ...(warning && { warning }) });
-  });
+      res.status(201).json({ data: formatStage(rows[0]), ...(warning && { warning }) });
+    },
+  );
 
   // ── PATCH /stages/:id ───────────────────────────────
   router.patch('/stages/:id', requireAuth, requireRole('admin', 'lawyer'), async (req, res) => {
     // Lookup stage → case for ownership
-    const { rows: [stage] } = await db.query(
+    const {
+      rows: [stage],
+    } = await db.query(
       `SELECT s.*, c.lawyer_id FROM stages s JOIN cases c ON c.id = s.case_id
        WHERE s.id = $1 AND s.deleted_at IS NULL AND c.deleted_at IS NULL`,
       [req.params.id],
@@ -57,15 +69,20 @@ export function stagesRouter(deps: { db: Pool; redis: Redis }) {
 
     const body = validate(updateStageSchema, req.body);
     const map: Record<string, string> = {
-      stageTypeId: 'stage_type_id', sortOrder: 'sort_order',
-      court: 'court', caseNumber: 'case_number',
+      stageTypeId: 'stage_type_id',
+      sortOrder: 'sort_order',
+      court: 'court',
+      caseNumber: 'case_number',
     };
     const sets: string[] = [];
     const vals: unknown[] = [];
     let idx = 1;
     for (const [js, col] of Object.entries(map)) {
       const v = (body as any)[js];
-      if (v !== undefined) { sets.push(`${col} = $${idx++}`); vals.push(v); }
+      if (v !== undefined) {
+        sets.push(`${col} = $${idx++}`);
+        vals.push(v);
+      }
     }
     if (!sets.length) throw AppError.badRequest('Нет полей для обновления.');
 
@@ -101,9 +118,12 @@ export function stagesRouter(deps: { db: Pool; redis: Redis }) {
     if (!rowCount) throw AppError.notFound('Стадия не найдена.');
 
     await writeAuditLog(db, {
-      userId: req.user!.id, action: 'DELETE', entityType: 'stage',
+      userId: req.user!.id,
+      action: 'DELETE',
+      entityType: 'stage',
       entityId: req.params.id as string,
-      ip: req.ip, userAgent: req.headers['user-agent'] as string,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'] as string,
     });
     res.json({ data: { message: 'Стадия удалена.' } });
   });
@@ -113,8 +133,13 @@ export function stagesRouter(deps: { db: Pool; redis: Redis }) {
 
 function formatStage(s: any) {
   return {
-    id: s.id, caseId: s.case_id, stageTypeId: s.stage_type_id,
-    sortOrder: s.sort_order, court: s.court, caseNumber: s.case_number,
-    createdAt: s.created_at, updatedAt: s.updated_at,
+    id: s.id,
+    caseId: s.case_id,
+    stageTypeId: s.stage_type_id,
+    sortOrder: s.sort_order,
+    court: s.court,
+    caseNumber: s.case_number,
+    createdAt: s.created_at,
+    updatedAt: s.updated_at,
   };
 }

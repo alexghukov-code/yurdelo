@@ -11,7 +11,14 @@ function loginAs(role: 'admin' | 'lawyer' | 'viewer', id = 'u1') {
   server.use(
     http.get('/api/v1/auth/me', () =>
       HttpResponse.json({
-        data: { id, email: `${role}@test.ru`, role, firstName: 'Тест', lastName: 'Тестов', twoFaEnabled: false },
+        data: {
+          id,
+          email: `${role}@test.ru`,
+          role,
+          firstName: 'Тест',
+          lastName: 'Тестов',
+          twoFaEnabled: false,
+        },
       }),
     ),
     http.get('/api/v1/notifications', () =>
@@ -25,15 +32,19 @@ function mockProfile(id: string, role: string) {
     http.get(`/api/v1/users/${id}`, () =>
       HttpResponse.json({
         data: {
-          id, email: `${role}@test.ru`, role, status: 'active',
-          firstName: 'Тест', lastName: 'Тестов', twoFaEnabled: false,
-          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          id,
+          email: `${role}@test.ru`,
+          role,
+          status: 'active',
+          firstName: 'Тест',
+          lastName: 'Тестов',
+          twoFaEnabled: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
       }),
     ),
-    http.get(`/api/v1/users/${id}/history`, () =>
-      HttpResponse.json({ data: [] }),
-    ),
+    http.get(`/api/v1/users/${id}/history`, () => HttpResponse.json({ data: [] })),
   );
 }
 

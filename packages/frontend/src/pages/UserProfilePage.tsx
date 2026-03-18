@@ -9,6 +9,8 @@ import { useAuth } from '../hooks/useAuth';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { QueryErrorView } from '../components/QueryErrorView';
 import { StaleDataModal } from '../components/StaleDataModal';
+import { DeactivateUserModal } from '../components/DeactivateUserModal';
+import { RestoreUserModal } from '../components/RestoreUserModal';
 import toast from 'react-hot-toast';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -33,6 +35,8 @@ export function UserProfilePage() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [staleOpen, setStaleOpen] = useState(false);
+  const [showDeactivate, setShowDeactivate] = useState(false);
+  const [showRestore, setShowRestore] = useState(false);
 
   const { data: profile, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['users', id],
@@ -88,15 +92,33 @@ export function UserProfilePage() {
             </span>
           </div>
         </div>
-        {canEdit && !editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            Редактировать
-          </button>
-        )}
+        <div className="flex gap-2">
+          {canEdit && !editing && (
+            <button
+              onClick={() => setEditing(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Редактировать
+            </button>
+          )}
+          {isAdmin && !isSelf && profile.status === 'active' && (
+            <button
+              onClick={() => setShowDeactivate(true)}
+              className="px-3 py-1.5 text-sm rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+            >
+              Деактивировать
+            </button>
+          )}
+          {isAdmin && profile.status === 'inactive' && (
+            <button
+              onClick={() => setShowRestore(true)}
+              className="px-3 py-1.5 text-sm rounded-lg border border-green-300 text-green-700 hover:bg-green-50"
+            >
+              Восстановить
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Profile section */}
@@ -140,6 +162,22 @@ export function UserProfilePage() {
           </div>
         )}
       </div>
+
+      {showDeactivate && (
+        <DeactivateUserModal
+          userId={profile.id}
+          userName={`${profile.lastName} ${profile.firstName}`}
+          onClose={() => { setShowDeactivate(false); refetch(); }}
+        />
+      )}
+      {showRestore && (
+        <RestoreUserModal
+          userId={profile.id}
+          userName={`${profile.lastName} ${profile.firstName}`}
+          previousRole={profile.role}
+          onClose={() => { setShowRestore(false); refetch(); }}
+        />
+      )}
     </div>
   );
 }

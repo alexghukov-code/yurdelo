@@ -8,6 +8,7 @@ import { PermissionGate } from '../components/PermissionGate';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { QueryErrorView } from '../components/QueryErrorView';
 import { EmptyState } from '../components/EmptyState';
+import { CreateUserModal } from '../components/CreateUserModal';
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Руководитель',
@@ -31,6 +32,7 @@ export function UsersPage() {
   const [page, setPage] = useState(1);
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['users', { page, role: roleFilter || undefined, status: statusFilter || undefined }],
@@ -47,7 +49,10 @@ export function UsersPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Пользователи</h1>
         <PermissionGate allow="user:manage">
-          <button className="flex items-center gap-1.5 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-1.5 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700"
+          >
             <Plus className="h-4 w-4" />
             Пользователь
           </button>
@@ -150,6 +155,8 @@ export function UsersPage() {
           )}
         </>
       )}
+
+      {showCreate && <CreateUserModal onClose={() => setShowCreate(false)} />}
     </div>
   );
 }

@@ -11,7 +11,10 @@ const { app, db, redis } = createApp();
 
 async function start() {
   try {
-    await redis.connect();
+    if (redis.status === 'wait') {
+      await redis.connect();
+    }
+    await redis.ping();
     logger.info('Redis connected');
 
     await db.query('SELECT 1');

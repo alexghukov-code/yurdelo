@@ -402,7 +402,11 @@ function TwoFaSection({
           <p className="text-sm text-gray-600">
             Отсканируйте QR-код в Google Authenticator или другом TOTP-приложении.
           </p>
-          <img src={qrData.qrCodeUrl} alt="QR-код 2FA" className="w-48 h-48 border rounded-lg" />
+          {qrData.qrCodeUrl.startsWith('data:image/') ? (
+            <img src={qrData.qrCodeUrl} alt="QR-код 2FA" className="w-48 h-48 border rounded-lg" />
+          ) : (
+            <p className="text-sm text-red-600">Ошибка: некорректный QR-код.</p>
+          )}
           <div>
             <p className="text-xs text-gray-500 mb-1">Или введите ключ вручную:</p>
             <code className="text-xs bg-gray-100 px-2 py-1 rounded select-all break-all">

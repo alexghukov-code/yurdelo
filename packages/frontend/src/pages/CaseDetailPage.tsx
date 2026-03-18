@@ -51,7 +51,7 @@ export function CaseDetailPage() {
   const { data: transfers = [] } = useQuery({
     queryKey: ['transfers', id],
     queryFn: () => fetchTransfers(id!),
-    enabled: !!id && !!caseData,
+    enabled: !!id,
   });
 
   if (isLoading) return <PageSkeleton />;
@@ -124,7 +124,7 @@ export function CaseDetailPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{c.name}</h1>
               <p className="text-sm text-gray-500 mt-1">
-                {c.pltName} vs {c.defName} &middot; {c.category} &middot; {c.lawyerName}
+                {c.pltName ?? '—'} vs {c.defName ?? '—'} &middot; {c.category} &middot; {c.lawyerName ?? '—'}
               </p>
             </div>
             <div className="flex gap-2">
@@ -378,7 +378,7 @@ export function CaseDetailPage() {
                 >
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
-                      {t.fromName} → {t.toName}
+                      {t.fromName ?? '—'} → {t.toName ?? '—'}
                     </p>
                     {t.comment && <p className="text-gray-500 mt-0.5">{t.comment}</p>}
                     <p className="text-xs text-gray-400 mt-1">

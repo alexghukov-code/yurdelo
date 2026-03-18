@@ -204,8 +204,16 @@ function PartyModal({ mode, party, onClose, onSuccess }: PartyModalProps) {
   const isPending = createMut.isPending || updateMut.isPending;
 
   function onSubmit(values: PartyFormValues) {
+    // Strip empty strings to undefined — backend Zod rejects "" for optional email
+    const clean: Record<string, unknown> = { name: values.name };
+    if (values.inn) clean.inn = values.inn;
+    if (values.ogrn) clean.ogrn = values.ogrn;
+    if (values.address) clean.address = values.address;
+    if (values.phone) clean.phone = values.phone;
+    if (values.email) clean.email = values.email;
+
     if (mode === 'create') {
-      createMut.mutate(values);
+      createMut.mutate(clean);
     } else {
       updateMut.mutate(values);
     }

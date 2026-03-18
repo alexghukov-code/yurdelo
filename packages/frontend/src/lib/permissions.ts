@@ -34,6 +34,7 @@ export const PERMISSIONS = {
   'nav:parties':     ['admin', 'lawyer', 'viewer'],
   'nav:calendar':    ['admin', 'lawyer', 'viewer'],
   'nav:reports':     ['admin', 'lawyer'],
+  'nav:users':       ['admin'],
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

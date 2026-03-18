@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import {
-  Briefcase, Users, Calendar, BarChart3, Scale,
+  Briefcase, Users, Calendar, BarChart3, Scale, UserCog,
 } from 'lucide-react';
 import { can, type Permission } from '../lib/permissions';
 
@@ -9,6 +9,7 @@ const NAV: Array<{ to: string; label: string; icon: React.ElementType; allow: Pe
   { to: '/parties', label: 'Контрагенты', icon: Users, allow: 'nav:parties' },
   { to: '/calendar', label: 'Календарь', icon: Calendar, allow: 'nav:calendar' },
   { to: '/reports', label: 'Отчёты', icon: BarChart3, allow: 'nav:reports' },
+  { to: '/users', label: 'Пользователи', icon: UserCog, allow: 'nav:users' },
 ];
 
 interface SidebarProps {

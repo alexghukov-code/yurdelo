@@ -30,6 +30,7 @@ export const PERMISSIONS = {
 
   'user:manage': ['admin'],
 
+  'nav:dashboard': ['admin', 'lawyer', 'viewer'],
   'nav:cases': ['admin', 'lawyer', 'viewer'],
   'nav:parties': ['admin', 'lawyer', 'viewer'],
   'nav:calendar': ['admin', 'lawyer', 'viewer'],

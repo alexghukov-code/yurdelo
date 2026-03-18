@@ -11,6 +11,7 @@ import { CasesPage } from './pages/CasesPage';
 import { CaseDetailPage } from './pages/CaseDetailPage';
 import { PartiesPage } from './pages/PartiesPage';
 import { CalendarPage } from './pages/CalendarPage';
+import { CaseCreatePage } from './pages/CaseCreatePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 function handleMutationError(err: unknown) {
@@ -45,6 +46,9 @@ export function App() {
               <Route element={<AppShell />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="cases" element={<CasesPage />} />
+                <Route path="cases/new" element={<ProtectedRoute roles={['admin', 'lawyer']} />}>
+                  <Route index element={<CaseCreatePage />} />
+                </Route>
                 <Route path="cases/:id" element={<CaseDetailPage />} />
                 <Route path="parties" element={<PartiesPage />} />
                 <Route path="calendar" element={<CalendarPage />} />

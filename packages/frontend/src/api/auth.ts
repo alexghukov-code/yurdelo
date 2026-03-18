@@ -34,3 +34,8 @@ export async function fetchMe() {
   const { data } = await api.get<{ data: User }>('/auth/me');
   return data.data;
 }
+
+export async function changePassword(body: { oldPassword: string; newPassword: string }) {
+  const { data } = await api.post<{ data: { message: string } }>('/auth/change-password', body);
+  return data.data;
+}

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Pencil, Clock } from 'lucide-react';
 import { fetchUser, updateUser, fetchUserHistory } from '../api/users';
+import { changePassword } from '../api/auth';
 import { isStaleDataError } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { PageSkeleton } from '../components/PageSkeleton';
@@ -137,6 +138,9 @@ export function UserProfilePage() {
         )}
       </div>
 
+      {/* Change password — own profile only */}
+      {isSelf && <ChangePasswordSection />}
+
       {/* History section */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -178,6 +182,70 @@ export function UserProfilePage() {
           onClose={() => { setShowRestore(false); refetch(); }}
         />
       )}
+    </div>
+  );
+}
+
+/* ── Change password ── */
+
+interface PasswordFormValues {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+function ChangePasswordSection() {
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<PasswordFormValues>();
+
+  const mutation = useMutation({
+    mutationFn: ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }) =>
+      changePassword({ oldPassword, newPassword }),
+    onSuccess: () => {
+      toast.success('Пароль изменён. Все сессии завершены.');
+      reset();
+    },
+  });
+
+  const newPassword = watch('newPassword');
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">Смена пароля</h2>
+      <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-3 max-w-md">
+        <div>
+          <label htmlFor="cp-old" className="block text-xs text-gray-500 mb-1">Текущий пароль</label>
+          <input id="cp-old" type="password" autoComplete="current-password"
+            {...register('oldPassword', { required: 'Обязательно.' })}
+            className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.oldPassword ? 'border-red-300' : 'border-gray-300'}`} />
+          {errors.oldPassword && <p className="text-xs text-red-600 mt-1">{errors.oldPassword.message}</p>}
+        </div>
+        <div>
+          <label htmlFor="cp-new" className="block text-xs text-gray-500 mb-1">Новый пароль</label>
+          <input id="cp-new" type="password" autoComplete="new-password"
+            {...register('newPassword', {
+              required: 'Обязательно.',
+              minLength: { value: 8, message: 'Минимум 8 символов.' },
+              pattern: { value: /(?=.*[a-zA-Zа-яА-Я])(?=.*\d)/, message: 'Буква + цифра обязательны.' },
+            })}
+            className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.newPassword ? 'border-red-300' : 'border-gray-300'}`} />
+          {errors.newPassword && <p className="text-xs text-red-600 mt-1">{errors.newPassword.message}</p>}
+        </div>
+        <div>
+          <label htmlFor="cp-confirm" className="block text-xs text-gray-500 mb-1">Подтверждение</label>
+          <input id="cp-confirm" type="password" autoComplete="new-password"
+            {...register('confirmPassword', {
+              required: 'Обязательно.',
+              validate: (v) => v === newPassword || 'Пароли не совпадают.',
+            })}
+            className={`w-full rounded-lg border px-3 py-2 text-sm ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'}`} />
+          {errors.confirmPassword && <p className="text-xs text-red-600 mt-1">{errors.confirmPassword.message}</p>}
+        </div>
+        <p className="text-xs text-gray-400">Минимум 8 символов, буква + цифра.</p>
+        <button type="submit" disabled={mutation.isPending}
+          className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+          {mutation.isPending ? 'Сохранение...' : 'Изменить пароль'}
+        </button>
+      </form>
     </div>
   );
 }

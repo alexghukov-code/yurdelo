@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(py:*)",
+      "Bash(cd:*)",
+      "Bash(which:*)",
+      "Bash(find:*)"
+    ]
+  }
+}

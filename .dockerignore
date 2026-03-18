@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+.env
+.env.local
+*.log
+.git
+.github
+coverage
+.vite
+infra
+docs
+*.md
+!packages/*/package.json

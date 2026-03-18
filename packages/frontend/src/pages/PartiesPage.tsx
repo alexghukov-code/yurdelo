@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Search, Plus, X } from 'lucide-react';
 import { fetchParties, createParty, type Party } from '../api/parties';
-import { useAuth } from '../hooks/useAuth';
+import { PermissionGate } from '../components/PermissionGate';
 import { useDebounce } from '../hooks/useDebounce';
 import { TableSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
@@ -11,7 +11,6 @@ import { extractError } from '../api/client';
 import toast from 'react-hot-toast';
 
 export function PartiesPage() {
-  const { user } = useAuth();
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -23,20 +22,18 @@ export function PartiesPage() {
     placeholderData: (prev) => prev,
   });
 
-  const canCreate = user?.role === 'admin' || user?.role === 'lawyer';
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Контрагенты</h1>
-        {canCreate && (
+        <PermissionGate roles={['admin', 'lawyer']}>
           <button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-1.5 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" /> Контрагент
           </button>
-        )}
+        </PermissionGate>
       </div>
 
       <div className="relative max-w-sm mb-4">

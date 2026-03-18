@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { PermissionGate } from '../components/PermissionGate';
 import { useCasesList } from '../hooks/useCases';
 import { useDebounce } from '../hooks/useDebounce';
 import { TableSkeleton } from '../components/Skeleton';
@@ -9,7 +9,6 @@ import { EmptyState } from '../components/EmptyState';
 import { ErrorAlert } from '../components/ErrorAlert';
 
 export function CasesPage() {
-  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string>('');
   const [search, setSearch] = useState('');
@@ -21,13 +20,11 @@ export function CasesPage() {
     search: debouncedSearch.length >= 2 ? debouncedSearch : undefined,
   });
 
-  const canCreate = user?.role === 'admin' || user?.role === 'lawyer';
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Дела</h1>
-        {canCreate && (
+        <PermissionGate roles={['admin', 'lawyer']}>
           <Link
             to="/cases/new"
             className="flex items-center gap-1.5 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700"
@@ -35,7 +32,7 @@ export function CasesPage() {
             <Plus className="h-4 w-4" />
             Дело
           </Link>
-        )}
+        </PermissionGate>
       </div>
 
       {/* Filters */}

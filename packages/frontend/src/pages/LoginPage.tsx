@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { extractError } from '../api/client';
 import { Scale } from 'lucide-react';
@@ -14,6 +14,7 @@ interface LoginForm {
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [needs2fa, setNeeds2fa] = useState(false);
 
@@ -27,7 +28,8 @@ export function LoginPage() {
     setError(null);
     try {
       await login(values);
-      navigate('/', { replace: true });
+      const returnTo = searchParams.get('returnTo') || '/';
+      navigate(returnTo, { replace: true });
     } catch (err) {
       const e = extractError(err);
       if (e.message.includes('двухфакторной')) {

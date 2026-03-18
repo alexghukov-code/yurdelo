@@ -6,6 +6,7 @@ import { CardSkeleton } from '../components/Skeleton';
 import { ErrorAlert } from '../components/ErrorAlert';
 import { StaleDataModal } from '../components/StaleDataModal';
 import { ArrowLeft, Trash2 } from 'lucide-react';
+import { PermissionGate } from '../components/PermissionGate';
 
 export function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,9 +32,8 @@ export function CaseDetailPage() {
   if (!caseData) return null;
 
   const c = caseData;
-  const isAdmin = user?.role === 'admin';
   const isOwner = user?.role === 'lawyer' && c.lawyerId === user.id;
-  const canEdit = isAdmin || isOwner;
+  const canEdit = user?.role === 'admin' || isOwner;
 
   return (
     <div>
@@ -65,7 +65,7 @@ export function CaseDetailPage() {
               Закрыть дело
             </button>
           )}
-          {isAdmin && (
+          <PermissionGate roles={['admin']}>
             <button
               onClick={() => {
                 if (confirm('Удалить дело?')) deleteCase.mutate(c.id, { onSuccess: () => navigate('/') });
@@ -74,7 +74,7 @@ export function CaseDetailPage() {
             >
               <Trash2 className="h-4 w-4" />
             </button>
-          )}
+          </PermissionGate>
         </div>
       </div>
 

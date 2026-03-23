@@ -1,0 +1,40 @@
+# ── Integration tests: isolated PostgreSQL + Redis ──────
+# Usage:
+#   docker compose -f infra/docker-compose.test.yml up -d --wait
+#   <run migrations + tests>
+#   docker compose -f infra/docker-compose.test.yml down
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: yurdelo-postgres-test
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: yurdelo_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./postgres/init-db-test.sql:/docker-entrypoint-initdb.d/01-init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d yurdelo_test"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: yurdelo-redis-test
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+
+networks:
+  default:
+    name: yurdelo-test-net

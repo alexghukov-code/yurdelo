@@ -332,16 +332,251 @@ describe('Frontend Dockerfile', () => {
 });
 
 // ═══════════════════════════════════════════════════════
-// 7. Required files exist
+// 7. docker-compose.test.yml — инфраструктура для интеграционных тестов
+//
+// Тестовый compose-файл поднимает PostgreSQL и Redis на отдельных портах,
+// изолированно от dev-окружения. Данные хранятся в tmpfs — после docker-compose down
+// всё обнуляется, гарантируя чистое состояние для каждого прогона тестов.
+// ═══════════════════════════════════════════════════════
+
+describe('docker-compose.test.yml: structure', () => {
+  let compose: string;
+
+  beforeEach(() => {
+    compose = readFile('infra/docker-compose.test.yml');
+  });
+
+  // Тестовому окружению нужны только БД и кэш.
+  // Backend, frontend, nginx — не нужны: тесты запускают Express in-process через supertest.
+  it('has exactly 2 services: postgres-test and redis-test', () => {
+    expect(compose).toContain('postgres-test:');
+    expect(compose).toContain('redis-test:');
+    expect(compose).not.toMatch(/^\s{2}backend:/m);
+    expect(compose).not.toMatch(/^\s{2}frontend:/m);
+    expect(compose).not.toMatch(/^\s{2}nginx:/m);
+  });
+
+  // Версии образов должны совпадать с dev, чтобы тесты работали
+  // на тех же версиях PostgreSQL/Redis, что и в разработке.
+  it('uses same images as dev: postgres:16-alpine and redis:7-alpine', () => {
+    expect(compose).toContain('postgres:16-alpine');
+    expect(compose).toContain('redis:7-alpine');
+  });
+
+  // Порты смещены: postgres 5433 (вместо 5432), redis 6380 (вместо 6379).
+  // Это позволяет запускать тесты параллельно с dev-окружением без конфликтов.
+  it('uses different ports from dev (5433, 6380)', () => {
+    expect(compose).toContain('"5433:5432"');
+    expect(compose).toContain('"6380:6379"');
+    expect(compose).not.toContain('"5432:5432"');
+    expect(compose).not.toContain('"6379:6379"');
+  });
+
+  // Отдельная БД yurdelo_test — чтобы тестовые данные никогда не попали в dev-базу.
+  it('uses test database name yurdelo_test', () => {
+    expect(compose).toContain('POSTGRES_DB: yurdelo_test');
+  });
+
+  // tmpfs вместо named volume: данные живут только в RAM.
+  // При docker-compose down всё исчезает — каждый прогон начинается с нуля.
+  // Это критично для воспроизводимости тестов: не нужно вручную чистить БД.
+  it('uses tmpfs instead of named volume for postgres data', () => {
+    expect(compose).toContain('tmpfs:');
+    expect(compose).toContain('/var/lib/postgresql/data');
+    expect(compose).not.toContain('pgdata:');
+  });
+
+  // Секция volumes: на верхнем уровне не нужна — нет named volumes.
+  // Если бы она была, данные могли бы пережить docker-compose down.
+  it('does not have named volumes section', () => {
+    expect(compose).not.toMatch(/^volumes:/m);
+  });
+
+  // init-db-test.sql монтируется в docker-entrypoint-initdb.d/ —
+  // PostgreSQL автоматически выполняет его при первом запуске контейнера.
+  // Скрипт создаёт роль app_user с нужными правами (как в dev, но для yurdelo_test).
+  it('mounts init-db-test.sql for app_user creation', () => {
+    expect(compose).toContain('init-db-test.sql');
+    expect(compose).toContain('docker-entrypoint-initdb.d');
+  });
+
+  // Healthcheck нужен для флага --wait: docker-compose up -d --wait
+  // не вернёт управление, пока оба сервиса не станут healthy.
+  // Без healthcheck тесты могут начаться до готовности БД → случайные падения.
+  it('has healthchecks on both services', () => {
+    expect(compose).toContain('pg_isready');
+    expect(compose).toContain('redis-cli');
+  });
+
+  // Healthcheck postgres должен проверять именно yurdelo_test, а не yurdelo.
+  // pg_isready с неправильным именем БД может вернуть OK даже если нужная БД не создана.
+  it('postgres healthcheck references yurdelo_test database', () => {
+    expect(compose).toContain('pg_isready -U postgres -d yurdelo_test');
+  });
+
+  // Имена контейнеров не должны пересекаться с dev-окружением.
+  // Docker не позволит запустить два контейнера с одинаковым именем —
+  // это сломало бы параллельную работу dev + test.
+  it('uses separate container names from dev', () => {
+    expect(compose).toContain('yurdelo-postgres-test');
+    expect(compose).toContain('yurdelo-redis-test');
+    const devCompose = readFile('infra/docker-compose.yml');
+    const extractNames = (text: string): string[] =>
+      [...text.matchAll(/container_name:\s*(\S+)/g)].map((m) => m[1]);
+    const devNames = extractNames(devCompose);
+    const testNames = extractNames(compose);
+    const overlap = devNames.filter((n) => testNames.includes(n));
+    expect(overlap).toEqual([]);
+  });
+
+  // Отдельная Docker-сеть yurdelo-test-net изолирует тестовые контейнеры.
+  // Без неё postgres-test мог бы случайно быть доступен из dev-контейнеров по имени.
+  it('uses isolated network yurdelo-test-net', () => {
+    expect(compose).toContain('yurdelo-test-net');
+  });
+
+  // Интервал healthcheck <= 3с — быстрее чем в dev (5с).
+  // Для тестов важна скорость старта: каждая лишняя секунда ожидания
+  // замедляет CI-пайплайн. 3с × 5 retries = максимум 15с до healthy.
+  it('healthcheck intervals are <= 3s (fast for tests)', () => {
+    const intervals = [...compose.matchAll(/interval:\s*(\d+)s/g)].map((m) => parseInt(m[1]));
+    expect(intervals.length).toBeGreaterThanOrEqual(2);
+    for (const interval of intervals) {
+      expect(interval).toBeLessThanOrEqual(3);
+    }
+  });
+});
+
+// ───────────────────────────────────────────────────────
+// init-db-test.sql — скрипт инициализации тестовой БД.
+//
+// Создаёт роль app_user с теми же правами, что и в dev.
+// Главное отличие: GRANT CONNECT на yurdelo_test вместо yurdelo.
+// Если права отличаются от dev, тесты могут проходить,
+// а в реальной среде приложение упадёт с permission denied.
+// ───────────────────────────────────────────────────────
+
+describe('init-db-test.sql: test database init', () => {
+  let initSql: string;
+  let devInitSql: string;
+
+  beforeEach(() => {
+    initSql = readFile('infra/postgres/init-db-test.sql');
+    devInitSql = readFile('infra/postgres/init-db.sql');
+  });
+
+  // Роль app_user — это непривилегированный пользователь, под которым работает приложение.
+  // Миграции бегут под postgres (суперюзер), а app_user подчиняется RLS-политикам.
+  it('creates app_user role', () => {
+    expect(initSql).toContain('CREATE ROLE app_user');
+  });
+
+  // GRANT CONNECT должен указывать на yurdelo_test, а не на yurdelo.
+  // Если указать yurdelo — команда упадёт, т.к. такой БД нет в тестовом контейнере.
+  // Регулярка \b[^_] гарантирует, что мы не путаем "yurdelo" и "yurdelo_test".
+  it('grants connect on yurdelo_test (not yurdelo)', () => {
+    expect(initSql).toContain('GRANT CONNECT ON DATABASE yurdelo_test');
+    expect(initSql).not.toMatch(/GRANT CONNECT ON DATABASE yurdelo\b[^_]/);
+  });
+
+  // Набор привилегий (SELECT, INSERT, UPDATE, DELETE + USAGE на sequences)
+  // должен быть идентичен dev-версии. Если в тесте дать больше прав —
+  // тесты пройдут, но в prod приложение может получить permission denied.
+  it('grants same privileges as dev init-db.sql', () => {
+    expect(initSql).toContain('GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user');
+    expect(initSql).toContain('GRANT USAGE, SELECT ON SEQUENCES TO app_user');
+  });
+
+  // Пароль app_user должен совпадать с dev — иначе DATABASE_URL в тестах
+  // не сможет подключиться. Извлекаем пароль из обоих файлов и сравниваем.
+  it('uses same app_user password as dev', () => {
+    const devPassword = devInitSql.match(/PASSWORD '([^']+)'/)?.[1];
+    const testPassword = initSql.match(/PASSWORD '([^']+)'/)?.[1];
+    expect(devPassword).toBeTruthy();
+    expect(testPassword).toBe(devPassword);
+  });
+
+  // Без USAGE ON SCHEMA public app_user не сможет видеть таблицы в схеме public.
+  // Все миграции создают таблицы именно в public.
+  it('grants USAGE ON SCHEMA public', () => {
+    expect(initSql).toContain('GRANT USAGE ON SCHEMA public TO app_user');
+  });
+
+  // ALTER DEFAULT PRIVILEGES гарантирует, что таблицы, созданные суперюзером
+  // (через миграции), автоматически получат нужные GRANT для app_user.
+  // Без этого: миграции пройдут, но app_user не сможет читать новые таблицы.
+  it('sets DEFAULT PRIVILEGES for future tables', () => {
+    expect(initSql).toContain('ALTER DEFAULT PRIVILEGES IN SCHEMA public');
+  });
+});
+
+// ───────────────────────────────────────────────────────
+// Сравнение test и dev compose-файлов.
+//
+// Цель: гарантировать, что тестовое и dev-окружение могут работать одновременно.
+// Если хоть один порт или имя контейнера совпадает — docker compose up упадёт
+// или, хуже, тесты пойдут в dev-базу.
+// ───────────────────────────────────────────────────────
+
+describe('docker-compose.test.yml vs docker-compose.yml: no port conflicts', () => {
+
+  // Извлекаем все host-порты (левая часть "HOST:CONTAINER") из обоих файлов.
+  // Если есть пересечение — два сервиса попытаются слушать один порт → ошибка bind.
+  it('test and dev have zero port overlap', () => {
+    const devCompose = readFile('infra/docker-compose.yml');
+    const testCompose = readFile('infra/docker-compose.test.yml');
+
+    const extractHostPorts = (text: string): string[] => {
+      const matches = [...text.matchAll(/"(\d+):\d+"/g)];
+      return matches.map((m) => m[1]);
+    };
+
+    const devPorts = extractHostPorts(devCompose);
+    const testPorts = extractHostPorts(testCompose);
+
+    const overlap = devPorts.filter((p) => testPorts.includes(p));
+    expect(overlap).toEqual([]);
+  });
+
+  // Docker требует уникальные container_name в пределах хоста.
+  // Если имена совпадут — второй docker compose up не сможет создать контейнер.
+  it('test and dev have different container names', () => {
+    const devCompose = readFile('infra/docker-compose.yml');
+    const testCompose = readFile('infra/docker-compose.test.yml');
+
+    const extractNames = (text: string): string[] => {
+      return [...text.matchAll(/container_name:\s*(\S+)/g)].map((m) => m[1]);
+    };
+
+    const devNames = extractNames(devCompose);
+    const testNames = extractNames(testCompose);
+
+    const overlap = devNames.filter((n) => testNames.includes(n));
+    expect(overlap).toEqual([]);
+  });
+
+  // Изолированная сеть не даёт тестовым контейнерам резолвить dev-имена
+  // (например, "postgres") и наоборот. Dev использует дефолтную сеть,
+  // test — явно заданную yurdelo-test-net.
+  it('test and dev use different network names', () => {
+    const testCompose = readFile('infra/docker-compose.test.yml');
+    expect(testCompose).toContain('yurdelo-test-net');
+  });
+});
+
+// ═══════════════════════════════════════════════════════
+// 8. Required files exist
 // ═══════════════════════════════════════════════════════
 
 describe('Required infrastructure files exist', () => {
   const files = [
     'infra/docker-compose.yml',
     'infra/docker-compose.prod.yml',
+    'infra/docker-compose.test.yml',
     'infra/nginx/default.dev.conf',
     'infra/nginx/default.prod.conf',
     'infra/postgres/init-db.sql',
+    'infra/postgres/init-db-test.sql',
     'infra/scripts/deploy.sh',
     'infra/scripts/rollback.sh',
     'packages/backend/Dockerfile',
